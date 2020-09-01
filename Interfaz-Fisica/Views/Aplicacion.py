@@ -36,7 +36,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self, parent) 
         self.setupUi(self)       
         self.enviar = Ventana_reportes(self)
-        self.reportes.clicked.connect(self.show)
+        self.reportes.clicked.connect(self.enviar.show)
         self.title = 'DETERMINATION OF CRITICAL PARAMETERS FROM STUDY OF MAGNETICS FLUCTUATIONS IN HTCS'
         self.iconName = "../Img/Telematica.png" 
              
