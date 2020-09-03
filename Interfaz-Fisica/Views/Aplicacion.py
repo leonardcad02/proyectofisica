@@ -2,7 +2,7 @@ import sys
 
 #from visualizar import *
 import pymysql
-
+from PyQt5 import QtPrintSupport
 import matplotlib
 from matplotlib.widgets import Cursor
 import matplotlib.pyplot as plt
@@ -32,7 +32,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent) 
         self.setupUi(self)       
-        self.enviar = Ventana_reportes(self)
+        self.enviar = reportes(self)
         self.reportes.clicked.connect(self.enviar.show)
         self.title = 'DETERMINATION OF CRITICAL PARAMETERS FROM STUDY OF MAGNETICS FLUCTUATIONS IN HTCS'
         self.iconName = "../Img/Telematica.png" 
@@ -853,7 +853,7 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
         # =================== WIDGET QTREEWIDGET ===================
         #self.treeaboveTco.setHeaderHidden(True)
         self.treeaboveTco.setRootIsDecorated(True)
-        self.treeaboveTco.setHeaderLabels(["muestra", "tc", "tirr", "tco", "dimensionalidad", "asl", "bld", "longitudab", "longitudc", "gamma", "fecha"])
+        self.treeaboveTco.setHeaderLabels(["Sample", "Tc (K)", "Tirr (K)", "Tco (K)", "dimensionalidad", "asl", "bld", "longitudab", "longitudc", "gamma", "fecha"])
 
         self.model = self.treeaboveTco.model()
 
@@ -892,7 +892,7 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
             datos = ""
             item_widget = []
             for dato in datosDB:
-                datos += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % dato
+                datos += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % dato
                 item_widget.append(QtWidgets.QTreeWidgetItem(
                     (str(dato[0]), str(dato[1]), str(dato[2]), str(dato[3]), str(dato[4]), str(dato[5]), str(dato[6]),str(dato[7])+
                     str(dato[8]),str(dato[9]),str(dato[10]))))
@@ -920,8 +920,8 @@ td {
     padding-left: 6px;
    }
 th {
-    text-align: left;
-    padding: 4px;
+    text-align: center;
+    padding: 2px;
     background-color: black;
     color: white;
    }
@@ -931,18 +931,13 @@ tr:nth-child(even) {
 </style>
 </head>
 <body>
-
 <h3>Critical parameters<br/></h3>
-<img src="../img/GSM.jpg" >
 <table align="center" width="100%" cellspacing="0">
   <tr>
     <th>Sample</th>
-    <th>Tc</th>
-    <th>Tirr</th>
-    <th>Tco</th>
-    <th>LongitudCoherencia</th>
-    <th>Suceptibilidad</th>
-    <th>Fecha</th>
+    <th>Tc(K)</th>    
+    <th>Tirr (K)</th>
+    <th>Tco (K)</th>   
   </tr>
   [DATOS]
 </table>
@@ -982,10 +977,10 @@ tr:nth-child(even) {
         if datosDB:
             self.documento.clear()
             self.treeaboveTco.clear()
-            datos = ""
+            datoses = ""
             item_widget = []
             for dato in datosDB:
-                datos += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</tr>" % dato
+                datoses += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</tr>" % dato
                 item_widget.append(QtWidgets.QTreeWidgetItem(
                     (str(dato[0]), str(dato[1]), str(dato[2]), str(dato[3]), str(dato[4]))))
 
@@ -1032,14 +1027,14 @@ tr:nth-child(even) {
     <th>m</th>
     <th>Fecha</th>
   </tr>
-  [DATOS]
+  [DATOSES]
 </table>
 </body>
 </html>
-""".replace("[DATOS]", datos)
+""".replace("[DATOSES]", datoses)
 
-            datos = QtCore.QByteArray()
-            datos.append(str(reporteHtml))
+            datoses = QtCore.QByteArray()
+            datoses.append(str(reporteHtml))
             codec = QtCore.QTextCodec.codecForHtml(datos)
             unistr = codec.toUnicode(datos)
             if QtCore.Qt.mightBeRichText(unistr):

@@ -1,13 +1,13 @@
 import sys
-from PyQt5 import QtWidgets, QtGui, uic, QtCore, QtPrintSupport,QtSql
+from ventana_reportes import *
 import pymysql
 
-class Ventana_reportes(QtWidgets.QDialog):
-    def __init__(self, parent = None ):
-        QtWidgets.QDialog.__init__(self,parent)
+class reportes(QtWidgets.QDialog,Ui_Reportes):
+    def __init__(self, parent = None , *args, **kwargs, ):
+        QtWidgets.QDialog.__init__(self,parent ,*args, **kwargs, )
+        self.setupUi(self)
         self.parent = parent
-        uic.loadUi('../QtDesigner/Reportes.ui', self)
-        print (self.parent)
+        
         
         # create table aboveTco
 
