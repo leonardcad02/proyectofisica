@@ -1,6 +1,4 @@
 import sys
-from PyQt5 import QtWidgets, QtGui, uic, QtCore, QtPrintSupport,QtSql
-
 
 #from visualizar import *
 import pymysql
@@ -14,7 +12,9 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.model_selection import train_test_split
 
 from Reportes import *
- 
+from ventana_data import *
+from ventana_database import *
+from ventana_help import*
 
 import pandas as pd
 import numpy as np
@@ -26,11 +26,8 @@ font = {'family': 'arial',
         'size': 7}
 matplotlib.rc('font', **font)
 
-qtCreatorFile = '../QtDesigner/EncimaTco.ui'
-Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
-
-class App(QtWidgets.QMainWindow, Ui_MainWindow):
+class App(QtWidgets.QMainWindow, Ui_VentanaTco):
     Reportes = None
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self, parent) 
@@ -39,7 +36,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.reportes.clicked.connect(self.enviar.show)
         self.title = 'DETERMINATION OF CRITICAL PARAMETERS FROM STUDY OF MAGNETICS FLUCTUATIONS IN HTCS'
         self.iconName = "../Img/Telematica.png" 
-             
+            
 
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
@@ -263,9 +260,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.size_x_min.clear()
         self.size_y_min.clear()
         self.size_y_max.clear()
-        print (self._size_x)
-        print (self._size_y)
-         
+                
 
         self.df = self.datos.parse(self.field.currentText())
 
@@ -394,11 +389,9 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
             datoFinalFc = (self.Datofinalfc.text())
             dato_inicial = (self.Datoinicialzfc.text())
             dato_final = (self.Datofinalzfc.text())
-            print ("Entro") 
             try:
                 masa = float(masa)
                 if ((datoInicialFc.isnumeric() == True)  and (datoFinalFc.isnumeric() == True) and  (dato_inicial.isnumeric() == True) and (dato_final.isnumeric() == True)):                    
-                    print ("Entro_2") 
                     datoInicialFc = int(datoInicialFc)
                     datoFinalFc = int(datoFinalFc)
                     dato_inicial = int(dato_inicial)
@@ -407,11 +400,7 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
                     Magnetizacion = Momentum / masa
                     self.df["Magnetizacion"] = Magnetizacion
                     zfc = self.df[dato_inicial:dato_final][["Temperature (K)", "Magnetizacion"]]
-                    fc = self.df[datoInicialFc:datoFinalFc][["Temperature (K)", "Magnetizacion"]]
-                    print (dato_inicial)
-                    print (dato_final)
-                    print (datoInicialFc)
-                    print (datoFinalFc)
+                    fc = self.df[datoInicialFc:datoFinalFc][["Temperature (K)", "Magnetizacion"]]                 
                     self._position_x = []
                     self._position_y = []
                     self._position_x.append(fc['Temperature (K)'])
@@ -850,15 +839,15 @@ class App(QtWidgets.QMainWindow, Ui_MainWindow):
         self.reportesdatos = Ventana_Database()
         self.reportesdatos.exec_()
 
-class Ventana_help(QtWidgets.QDialog):
-    def __init__(self):
-        QtWidgets.QDialog.__init__(self)
-        uic.loadUi('../QtDesigner/help.ui', self)    
+class Ventana_help(QtWidgets.QDialog, Ui_Help):
+    def __init__(self,*args, **kwargs):
+        QtWidgets.QDialog.__init__(self, *args, **kwargs)
+        self.setupUi(self) 
 
-class Ventana_Database(QtWidgets.QDialog):
-    def __init__(self):
-        QtWidgets.QDialog.__init__(self)
-        uic.loadUi('../QtDesigner/Database.ui', self)   
+class Ventana_Database(QtWidgets.QDialog,Ui_Database):
+    def __init__(self,*args, **kwargs):
+        QtWidgets.QDialog.__init__(self, *args, **kwargs)
+        self.setupUi(self)   
         self.documento = QtGui.QTextDocument()
 
         # =================== WIDGET QTREEWIDGET ===================
