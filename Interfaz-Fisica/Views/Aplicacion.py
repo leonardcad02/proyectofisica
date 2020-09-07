@@ -1,7 +1,7 @@
 import sys
 
 #from visualizar import *
-import pymysql
+from sqlite3 import connect
 from PyQt5 import QtPrintSupport
 import matplotlib
 from matplotlib.widgets import Cursor
@@ -73,8 +73,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
 
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setMinimumSize(1116, 672)
-        self.setMaximumSize(1116, 672)
+        self.setMinimumSize(1200, 700)
+        self.setMaximumSize(1200, 700)
         self.setWindowIcon(QtGui.QIcon(self.iconName))
 
         # crear el menu
@@ -105,6 +105,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.calcular.setEnabled(False)
         self.Masa.setEnabled(False)
         self.Tinicial.setEnabled(False)
+        self.buttonloaded.setEnabled (False)
         self.Tfinal.setEnabled(False)
         self.Minicial.setEnabled(False)
         self.Mfinal.setEnabled(False)
@@ -131,6 +132,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.dataBase.clicked.connect(self._reportdatabase)
         self.Button_Set.clicked.connect(self._arena_size)
         self.Button_Zoom.clicked.connect(self._zoom)
+        self.buttonloaded.clicked.connect(self._loaded)
      
     def _getItem(self):
         item = self.aboveTco_2.currentText().strip()
@@ -146,7 +148,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self._longitud_coherencia()
         elif item == "\u03C7":
             self._dimensionalidad()
-
+   
     def _openData(self):
         filePath, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', 'c:\\', 'xlsx(*.xlsx)')
         if filePath == "":
@@ -174,6 +176,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self.size_y_min.setEnabled(True)
             self.size_y_max.setEnabled(True)
             self.calcular.setEnabled(True)
+            self.buttonloaded.setEnabled (True)
             self.Button_Set.setEnabled(True)
             self.aboveTco_2.setEnabled(True)
             self.belowTco_2.setEnabled(True)
@@ -184,6 +187,14 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             for i in range(len(self.dataset.index)):
                 for j in range(len(self.dataset.columns)):
                     self.TableDataset.setItem(i,j,QtWidgets.QTableWidgetItem(str(self.dataset.iloc[i,j])))
+    
+    def _loaded (self):        
+        self.df = self.datos.parse(self.field.currentText())         
+        self.TableDataset.setColumnCount(len(self.dataset.columns))
+        self.TableDataset.setRowCount(len(self.dataset.index))
+        for i in range(len(self.dataset.index)):
+            for j in range(len(self.dataset.columns)):
+                self.TableDataset.setItem(i,j,QtWidgets.QTableWidgetItem(str(self.df.iloc[i,j])))
 
     def _help(self):
         self.ventana = Ventana_help()
@@ -265,10 +276,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.df = self.datos.parse(self.field.currentText())
 
         if (self.Tinicial.text() == "" or self.Tfinal.text() == "" or self.Minicial.text() == "" or self.Mfinal.text() == "" or self.Datoinicialzfc.text() == "" or self.Datofinalzfc.text() == ""):
-            QtWidgets.QMessageBox.question(self, 'Mensaje', "You must fill all the fields." + "",
+            QtWidgets.QMessageBox.question(self, 'TC', "You must fill all the fields." + "",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         elif self.Masa.text() == "":
-            QtWidgets.QMessageBox.question(self, 'Message', "You must enter the value of the mass." + "",
+            QtWidgets.QMessageBox.question(self, 'Mass', "You must enter the value of the mass." + "",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         else:
             masa = self.Masa.text()
@@ -361,8 +372,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 self.resultados.setText(str(estad_st))
                 return True
             except ValueError:
-                QtWidgets.QMessageBox.question(self, 'Message', "You must enter the value of numeric." + "",
-                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok) 
+                QtWidgets.QMessageBox.critical(self, 'Warning', "You must enter the value of numeric.",
+                                QtWidgets.QMessageBox.Ok)
+                 
                 return False
             
     def _tirreversible(self):
@@ -416,8 +428,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     self._plot(self._position_x, self._position_y, self.grafica, cursor=True)
                 
                 else:
-                    QtWidgets.QMessageBox.question(self, 'Message', "You must enter the value of numeric." + "",
-                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.critical(self, 'Warning', "You must enter the value of numeric.",
+                                QtWidgets.QMessageBox.Ok)
                 return True    
             except ValueError:
                 QtWidgets.QMessageBox.question(self, 'Mass', "You must enter the value of numeric the mass or The vector must be equal" + "",
@@ -542,7 +554,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             QtWidgets.QMessageBox.question(self, 'ZFC', "You must fill all the fields." + "",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         elif self.Masa.text() == "":
-            QtWidgets.QMessageBox.question(self, 'Message', "You must enter the value of the mass." + "",
+            QtWidgets.QMessageBox.question(self, 'Mass', "You must enter the value of the mass." + "",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         else:
             masa = self.Masa.text()
@@ -619,8 +631,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self._plot(self._position_x,self._position_y, self.grafica, cursor=True)
 
                 else:
-                    QtWidgets.QMessageBox.question(self, 'Message', "You must enter the value of numeric." + "",
-                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+                    QtWidgets.QMessageBox.critical(self, 'Warning', "You must enter the value of numeric.",
+                                QtWidgets.QMessageBox.Ok)
+                    
                 return True        
             except ValueError:
                 QtWidgets.QMessageBox.question(self, 'Mass', "You must enter the value of numeric the mass or The vector must be equal" + "",
@@ -676,8 +689,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     #self.temperatura_reducida = self.temperatura_reducida.tolist()
 
                 else:
-                    QtWidgets.QMessageBox.question(self, 'Message', "You must enter the value of numeric." + "",
-                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)  
+                    QtWidgets.QMessageBox.critical(self, 'Warning', "You must enter the value of numeric.",
+                                QtWidgets.QMessageBox.Ok)
+                     
                 return True
 
             except ValueError:
@@ -756,7 +770,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 
             except ValueError:
                 QtWidgets.QMessageBox.critical(self, "Be Careful", "You must enter the value of numeric the mass or The vector must be equal",
-                                                QtWidgets.QMessageBox.Ok)
+                                QtWidgets.QMessageBox.Ok)
                 return False                     
         else:
             QtWidgets.QMessageBox.critical(self, "Tco", "you must Calculate Tco or coherecia longitud",
@@ -873,18 +887,13 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
         self.buttonExportarPDF.clicked.connect(self._exportPDF)
 
     def _searchAboveTco(self):
-        self.connection = pymysql.connect(
-            host='localhost',  # ip
-            user='root',
-            password='12345',
-            db='cupratos')
+        conexionDB = connect("../Database/cupratos.db")
+        cursor = conexionDB.cursor()
 
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(
-            "SELECT muestra, tc, tirr, tco, dimensionalidad, asl, bld, longitudab, longitudc, gamma, fecha FROM cupratos.abovetco;")
-        datosDB = self.cursor.fetchall()
-        self.cursor.close()
-        self.connection.close()
+        cursor.execute("SELECT Muestra,Tc,Tirr,Tco,Dimensionalidad,Asl,Bld,Longitudab,Longitudc,Gamma,Fecha FROM abovetco")
+        datosDB = cursor.fetchall()
+
+        conexionDB.close()
         
         if datosDB:
             self.documento.clear()
@@ -937,7 +946,14 @@ tr:nth-child(even) {
     <th>Sample</th>
     <th>Tc(K)</th>    
     <th>Tirr (K)</th>
-    <th>Tco (K)</th>   
+    <th>Tco (K)</th>
+    <th>"\u03C7"</th> 
+    <th>Ax (x10^-8) (1/K)</th>
+    <th>"Bld " + "\n" + "x10^-2")</th>
+    <th>"\u03C7"</th>
+    <th>"\u03BE" + "c" + " (0) (A)"</th>
+    <th>"\u03BB"</th>       
+    <th>Date</th>
   </tr>
   [DATOS]
 </table>
@@ -961,18 +977,13 @@ tr:nth-child(even) {
                                     QtWidgets.QMessageBox.Ok)
 
     def _searchBelowTco(self):
-        self.connection = pymysql.connect(
-            host='localhost',  # ip
-            user='root',
-            password='12345',
-            db='cupratos')
+        conexionDB = connect("../Database/cupratos.db")
+        cursor = conexionDB.cursor()
 
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(
-            "SELECT muestra,t,emu,m,fecha FROM cupratos.belowtco;")
-        datosDB = self.cursor.fetchall()
-        self.cursor.close()
-        self.connection.close()
+        cursor.execute("SELECT Muestra,Tc,Tirr,Tco,Dimensionalidad,Asl,Bld,Longitudab,Longitudc,Gamma,Fecha FROM aboveTco")
+        datosDB = cursor.fetchall()
+
+        conexionDB.close()
         
         if datosDB:
             self.documento.clear()
@@ -1033,8 +1044,8 @@ tr:nth-child(even) {
 </html>
 """.replace("[DATOSES]", datoses)
 
-            datoses = QtCore.QByteArray()
-            datoses.append(str(reporteHtml))
+            datos = QtCore.QByteArray()
+            datos.append(str(reporteHtml))
             codec = QtCore.QTextCodec.codecForHtml(datos)
             unistr = codec.toUnicode(datos)
             if QtCore.Qt.mightBeRichText(unistr):
@@ -1057,7 +1068,7 @@ tr:nth-child(even) {
             vista = QtPrintSupport.QPrintPreviewDialog(impresion, self)
             vista.setWindowTitle("Preview")
             vista.setWindowFlags(QtCore.Qt.Window)
-            vista.resize(800, 600)
+            vista.resize(800, 800)
 
             exportarPDF = vista.findChildren(QtWidgets.QToolBar)
             exportarPDF[0].addAction(QtGui.QIcon("exportarPDF.png"), "Export to a PDF", self._exportPDF)

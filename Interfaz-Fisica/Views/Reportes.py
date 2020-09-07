@@ -1,6 +1,6 @@
 import sys
 from ventana_reportes import *
-import pymysql
+from sqlite3 import connect
 
 class reportes(QtWidgets.QDialog,Ui_Reportes):
     def __init__(self, parent = None , *args, **kwargs, ):
@@ -42,8 +42,7 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
         self.longitud_coerencia_c = 0
         self.gamma = 0
         self.dimensionalidad = 0
-        self.Fecha = ""
-        
+        self.Fecha = ""       
         
 
         # Define values of critical parameters belowTco
@@ -79,32 +78,28 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
 
     def _saveData(self):
         try:
-            self.connection = pymysql.connect(
-                host='localhost',  # ip
-                user='root',
-                password='12345',
-                db='cupratos')
+            conexionDB = connect("../Database/cupratos.db")          
 
-        except pymysql.Error:
-            QtWidgets.QMessageBox.information(self, "Failed to DataBase", "Failed to set the database",
+        except ValueError:
+            QtWidgets.QMessageBox.information(self, "Failed to DataBase", ValueError,
                                     QtWidgets.QMessageBox.Ok)
             sys.exit(1)
-        self.cursor = self.connection.cursor()
+        cursor = conexionDB.cursor()
         try:
-            sql = "INSERT INTO abovetco(muestra, tc, tirr, tco, dimensionalidad, asl, bld, longitudab, longitudc," \
-                  "gamma, fecha) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+            sql = "INSERT INTO abovetco(Muestra, Tc, Tirr, Tco, Dimensionalidad, Asl, Bld, Longitudab, Longitudc," \
+                  "Gamma, Fecha) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             
-            self.cursor.execute(sql, ("Sample",self.Tc, self.Tirr, self.Tco, self.dimensionalidad, self.Asl, self.Bld,
+            cursor.execute(sql, ("Sample",self.Tc, self.Tirr, self.Tco, self.dimensionalidad, self.Asl, self.Bld,
                     self.longitud_coerencia_ab, self.longitud_coerencia_c, self.gamma, self.Fecha))
 
-            self.connection.commit()                   
+            conexionDB.commit()                   
             QtWidgets.QMessageBox.information(self, "New Row", "a row inserted into the database",
                                     QtWidgets.QMessageBox.Ok)
-        except pymysql.Error():
-            QtWidgets.QMessageBox.critical(self, "Be Careful", "Failed to send Data",
+        except ValueError:
+            QtWidgets.QMessageBox.critical(self, "Be Careful", ValueError,
                                                 QtWidgets.QMessageBox.Ok)
-            self.connection.rollback()
+            conexionDB.rollback()
             return False
-        self.cursor.close()
-        self.connection.close()
+        cursor.close()
+        conexionDB.close()
     
