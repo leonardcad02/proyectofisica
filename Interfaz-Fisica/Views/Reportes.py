@@ -7,8 +7,7 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
         QtWidgets.QDialog.__init__(self,parent ,*args, **kwargs, )
         self.setupUi(self)
         self.parent = parent
-        
-        
+                
         # create table aboveTco
 
         self.tableaboveTco.setItem(0, 0, QtWidgets.QTableWidgetItem("Sample"))
