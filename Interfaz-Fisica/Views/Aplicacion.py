@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 
 #from visualizar import *
@@ -59,6 +60,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.delta_t_cuadrado = None
         self.s =None
         self.pendiente = 0
+        self.muestra = ""
         self.Tc = 0
         self.Tirr = 0
         self.Tco = 0
@@ -68,15 +70,16 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.longitud_coerencia_c = 0
         self.gamma = 0
         self.dimensionalidad = 0
-        self.now = datetime.now()
+        self.now = datetime.now().strftime('%Y-%m-%d')
+        self.imagen = QtGui.QImage()
 
         self.initUI()
         self.show()
 
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setMinimumSize(1200, 700)
-        self.setMaximumSize(1200, 700)
+        self.setMinimumSize(1200, 750)
+        self.setMaximumSize(1200, 750)
         self.setWindowIcon(QtGui.QIcon(self.iconName))
 
         # crear el menu
@@ -107,7 +110,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.calcular.setEnabled(False)
         self.Masa.setEnabled(False)
         self.Tinicial.setEnabled(False)
-        self.buttonloaded.setEnabled (False)
+        self.buttonloaded.setEnabled(False)
+        self.Muestra.setEnabled(False)
+        self.savePicture.setEnabled (False)
         self.Tfinal.setEnabled(False)
         self.Minicial.setEnabled(False)
         self.Mfinal.setEnabled(False)
@@ -135,8 +140,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.Button_Set.clicked.connect(self._arena_size)
         self.Button_Zoom.clicked.connect(self._zoom)
         self.buttonloaded.clicked.connect(self._loaded)
+        self.savePicture.clicked.connect (self._savePicture)
+        
      
-    def _getItem(self):
+    def _getItem(self):        
         item = self.aboveTco_2.currentText().strip()
         if item == "ZFC":
             self._zfc()
@@ -164,6 +171,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self.dataset = pd.DataFrame(self.datos.parse())
             self.column.addItems(list(self.df.columns.values))
             self.Masa.setEnabled(True)
+            self.Muestra.setEnabled(True)
+            self.savePicture.setEnabled (True)
             self.Tinicial.setEnabled(True)
             self.Tfinal.setEnabled(True)
             self.Minicial.setEnabled(True)
@@ -219,7 +228,12 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         elif self.Masa.text() == "":
             QtWidgets.QMessageBox.question(self, 'Message', "You must enter the value of the mass." + "",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
-        else:            
+        elif self.Muestra.text() == "":
+            QtWidgets.QMessageBox.question(self, 'Sample Name', "You must enter the Sample Name " + "",
+                                           QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
+
+        else:
+            self.muestra = self.Muestra.text()            
             self.dato_inicial = self.Datoinicialzfc.text()
             self.dato_final = self.Datofinalzfc.text()
             masa = self.Masa.text()
@@ -627,7 +641,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self._position_y.append(pos_delta_t[dato_inicial:dato_final])
 
                         self.grafica = []
-                        self.grafica.append('Tirr')
+                        self.grafica.append('')
                         self.grafica.append('T (K)')
                         self.grafica.append('M (emu/g)')
                         self._plot(self._position_x,self._position_y, self.grafica, cursor=True)
@@ -780,7 +794,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
    
     def _send(self):
 
-        self.enviar.tableaboveTco.setItem(1, 0, QtWidgets.QTableWidgetItem(str("Sm358")))
+        self.enviar.tableaboveTco.setItem(1, 0, QtWidgets.QTableWidgetItem(self.muestra))
         self.enviar.tableaboveTco.setItem(1, 1, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(self.Tc))))
         self.enviar.tableaboveTco.setItem(1, 2, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(self.Tirr))))
         self.enviar.tableaboveTco.setItem(1, 3, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(self.Tco))))
@@ -792,6 +806,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.enviar.tableaboveTco.setItem(1, 9, QtWidgets.QTableWidgetItem(str("{0:.2E}".format(self.gamma))))        
         self.enviar.tableaboveTco.setItem(1, 10, QtWidgets.QTableWidgetItem(str(self.now)))
 
+        self.enviar.muestra = self.muestra
         self.enviar.Tc = str("{0:.2f}".format(self.Tc))
         self.enviar.Tirr = str("{0:.2f}".format(self.Tirr))
         self.enviar.Tco = str("{0:.2f}".format(self.Tco))
@@ -833,7 +848,25 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             axes.plot(data_aux_x, data_aux_y, '-*', color ='orange')
         axes.grid(True)
         self.canvas.draw()
-  
+    
+    def _savePicture(self):
+        item = self.aboveTco_2.currentText().strip()
+        figura = plt.savefig(item,bbox_inches='tight')
+        
+        imagen, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Export to Picture', item ,
+                                                                    "Archivos PNG (*.png);;All Files (*)",
+                                                                    options=QtWidgets.QFileDialog.Options())
+        if imagen:
+            impresion = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+            #impresion.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
+            impresion.setOutputFileName(figura)            
+            self.imagen.save(figura)
+            QtWidgets.QMessageBox.information(self, "Export to Picture ", "Picture  export successful",
+                                    QtWidgets.QMessageBox.Ok)
+        else:
+            QtWidgets.QMessageBox.critical(self, "Export to Picture ", "there is no data to export.   ",
+                                 QtWidgets.QMessageBox.Ok)
+     
     def _zoom (self):
         matplotlib.use('Qt5Agg')
         x = np.array(self._position_x)
@@ -869,7 +902,7 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
         # =================== WIDGET QTREEWIDGET ===================
         #self.treeaboveTco.setHeaderHidden(True)
         self.treeaboveTco.setRootIsDecorated(True)
-        self.treeaboveTco.setHeaderLabels(["Sample", "Tc (K)", "Tirr (K)", "Tco (K)", "dimensionalidad", "asl", "bld", "longitudab", "longitudc", "gamma", "fecha"])
+        self.treeaboveTco.setHeaderLabels(["Sample", "Tc (K)", "Tirr (K)", "Tco (K)", "\u03C7", "Ax (x10^-8) (1/K)", "Bld", "\u03C7" + "c" + " (0) (Å)", "\u03BE" + "c" + " (0) (Å)", "\u03BB", "Date"])
 
         self.model = self.treeaboveTco.model()
 
@@ -882,7 +915,8 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
         # =================== EVENTOS QPUSHBUTTON ==================
 
         self.searchAbove.clicked.connect(self._searchAboveTco)
-        self.searchBelow.clicked.connect(self._searchBelowTco)
+        self.searchBelow.setEnabled(False)
+        #self.searchBelow.clicked.connect(self._searchBelowTco)
         self.buttonLimpiar.clicked.connect(self._tableclean)
 
         self.buttonVistaPrevia.clicked.connect(self._preview)
@@ -894,8 +928,6 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
 
         cursor.execute("SELECT Muestra,Tc,Tirr,Tco,Dimensionalidad,Asl,Bld,Longitudab,Longitudc,Gamma,Fecha FROM abovetco")
         datosDB = cursor.fetchall()
-
-        conexionDB.close()
         
         if datosDB:
             self.documento.clear()
@@ -912,10 +944,12 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
 <style>
 h3 {
-    font-family: Helvetica-Bold;
+    @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200&display=swap')
+    font-family:'Raleway', sans-serif;
     text-align: center;
    }
 table {
@@ -990,10 +1024,10 @@ tr:nth-child(even) {
         if datosDB:
             self.documento.clear()
             self.treeaboveTco.clear()
-            datoses = ""
+            datos = ""
             item_widget = []
             for dato in datosDB:
-                datoses += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</tr>" % dato
+                datos += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</tr>" % dato
                 item_widget.append(QtWidgets.QTreeWidgetItem(
                     (str(dato[0]), str(dato[1]), str(dato[2]), str(dato[3]), str(dato[4]))))
 
@@ -1040,11 +1074,11 @@ tr:nth-child(even) {
     <th>m</th>
     <th>Fecha</th>
   </tr>
-  [DATOSES]
+  [DATOS]
 </table>
 </body>
 </html>
-""".replace("[DATOSES]", datoses)
+""".replace("[DATOS]", datos)
 
             datos = QtCore.QByteArray()
             datos.append(str(reporteHtml))

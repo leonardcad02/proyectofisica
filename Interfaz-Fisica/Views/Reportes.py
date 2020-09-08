@@ -1,12 +1,15 @@
+# -*- coding: utf-8 -*-
 import sys
 from ventana_reportes import *
 from sqlite3 import connect
+from PyQt5 import QtPrintSupport
 
 class reportes(QtWidgets.QDialog,Ui_Reportes):
     def __init__(self, parent = None , *args, **kwargs, ):
         QtWidgets.QDialog.__init__(self,parent ,*args, **kwargs, )
         self.setupUi(self)
         self.parent = parent
+        self.documento = QtGui.QTextDocument()
                 
         # create table aboveTco
 
@@ -15,10 +18,10 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
         self.tableaboveTco.setItem(0, 2, QtWidgets.QTableWidgetItem("Tirr"))
         self.tableaboveTco.setItem(0, 3, QtWidgets.QTableWidgetItem("Tco (K)"))
         self.tableaboveTco.setItem(0, 4, QtWidgets.QTableWidgetItem("\u03C7"))
-        self.tableaboveTco.setItem(0, 5, QtWidgets.QTableWidgetItem("Ax (x10^-8) (1/K)"))
+        self.tableaboveTco.setItem(0, 5, QtWidgets.QTableWidgetItem("Ax(1/K)"))
         self.tableaboveTco.setItem(0, 6, QtWidgets.QTableWidgetItem("Bld " + "\n" + "x10^-2"))
-        self.tableaboveTco.setItem(0, 7, QtWidgets.QTableWidgetItem("\u03BE" + "ab" + " (0) (A)"))
-        self.tableaboveTco.setItem(0, 8, QtWidgets.QTableWidgetItem("\u03BE" + "c" + " (0) (A)"))
+        self.tableaboveTco.setItem(0, 7, QtWidgets.QTableWidgetItem("\u03BE" + "ab" + " (0) (Å)"))
+        self.tableaboveTco.setItem(0, 8, QtWidgets.QTableWidgetItem("\u03BE" + "c" + " (0) (Å)"))
         self.tableaboveTco.setItem(0, 9, QtWidgets.QTableWidgetItem("\u03BB"))
         self.tableaboveTco.setItem(0, 10, QtWidgets.QTableWidgetItem("Date"))
 
@@ -32,6 +35,7 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
         self.tablebelowTco.setItem(0, 5, QtWidgets.QTableWidgetItem("\u03C7"))
         self.tablebelowTco.setItem(0, 6, QtWidgets.QTableWidgetItem("Hc2 (O) (Oe)"))
 
+        self.muestra = ""
         self.Tc = 0
         self.Tirr = 0
         self.Tco = 0
@@ -55,25 +59,97 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
 
 
         self.exportopdf.clicked.connect(self._exportarPDF)
-        self.saveDatabase.clicked.connect(self._saveData)
+        self.saveDatabase.clicked.connect(self._saveData)       
+
 
     def _exportarPDF(self):
+        datosDB = [(self.muestra,self.Tco,self.Tirr,self.Tco,self.dimensionalidad,self.Asl,self.Bld,self.longitud_coerencia_ab,self.longitud_coerencia_c,self.gamma,self.Fecha)]     
+        #print (datosDB)        
+        if datosDB:
+            self.documento.clear()
+            datos = ""
+            for dato in datosDB:
+                datos += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" %dato
+        reporteHtml = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+h3 {
+    @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200&display=swap')
+    font-family:'Raleway', sans-serif;
+    text-align: center;
+   }
+table {
+       font-family: arial, sans-serif;
+       border-collapse: collapse;
+       width: 100%;
+      }
+td {
+    text-align: left;
+    padding-top: 4px;
+    padding-right: 6px;
+    padding-bottom: 2px;
+    padding-left: 6px;
+   }
+th {
+    text-align: center;
+    padding: 2px;
+    background-color: black;
+    color: white;
+   }
+tr:nth-child(even) {
+                    background-color: #dddddd;
+                   }
+</style>
+</head>
+<body>
+<h3>Critical parameters<br/></h3>
+<table align="center" width="100%" cellspacing="0">
+  <tr>
+    <th>Sample</th>
+    <th>Tc(K)</th>    
+    <th>Tirr (K)</th>
+    <th>Tco (K)</th>
+    <th>\u03C7</th> 
+    <th>Ax \n (1/K)</th>
+    <th>Bld\nx10^-2</th>
+    <th>\u03BE ab(0)(Å)</th>
+    <th>\u03BE c(0)(Å)</th>
+    <th>\u03BB</th>       
+    <th>Date</th>
+  </tr>
+  [DATOS]
+</table>
+
+</body>
+</html>
+""".replace("[DATOS]", datos)
+        datos = QtCore.QByteArray()
+        datos.append(str(reporteHtml))
+        codec = QtCore.QTextCodec.codecForHtml(datos)
+        unistr = codec.toUnicode(datos)
+
+        if QtCore.Qt.mightBeRichText(unistr):
+            self.documento.setHtml(unistr)
+
         if not self.documento.isEmpty():
             nombreArchivo, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Export to Pdf', "Critical Parameters",
                                                                     "Archivos PDF (*.pdf);;All Files (*)",
                                                                     options=QtWidgets.QFileDialog.Options())
 
-            if nombreArchivo:
-                impresion = QtWidgets.QPrinter(QtWidgets.QPrinter.HighResolution)
-                impresion.setOutputFormat(QtWidgets.QPrinter.PdfFormat)
+            if nombreArchivo:            
+                impresion = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+                impresion.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
                 impresion.setOutputFileName(nombreArchivo)
                 self.documento.print_(impresion)
 
-                QtWidgets.QMessageBox.information(self, 'Export to Pdf', "Data exported successfully.   ",
-                                                QtWidgets.QMessageBox.Ok)
-        else:
-            QtWidgets.QMessageBox.critical(self, 'Export to Pdf', "There is no data to export.   ",
+                QtWidgets.QMessageBox.information(self, "Exportar a PDF", "Data  export successful   ",
                                         QtWidgets.QMessageBox.Ok)
+        else:
+            QtWidgets.QMessageBox.critical(self, "Exportar a PDF", "there is no data to export.   ",
+                                 QtWidgets.QMessageBox.Ok)
 
     def _saveData(self):
         try:
