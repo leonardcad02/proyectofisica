@@ -947,9 +947,8 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
 
 <meta charset="UTF-8">
 <style>
-h3 {
-    @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200&display=swap')
-    font-family:'Raleway', sans-serif;
+h3 {    
+    font-family: Helvetica-Bold;
     text-align: center;
    }
 table {

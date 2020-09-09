@@ -77,8 +77,7 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
 <meta charset="UTF-8">
 <style>
 h3 {
-    @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@100;200&display=swap')
-    font-family:'Raleway', sans-serif;
+    font-family: arial, sans-serif;
     text-align: center;
    }
 table {
