@@ -5,7 +5,8 @@ import sys
 from sqlite3 import connect
 from PyQt5 import QtPrintSupport
 import matplotlib
-from matplotlib.widgets import Cursor
+from matplotlib.widgets import Cursor, PolygonSelector 
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import sklearn
@@ -149,9 +150,14 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.tco1.setEnabled(False)
         self.tco2.setEnabled(False)
         
-
+        self.fecha.setText(str(self.now))
         self.aboveTco_2.addItem("\u03BE")
         self.aboveTco_2.addItem("\u03C7")
+
+        self.belowTco_2.addItem("\u0394 M*,T*")
+        self.belowTco_2.addItem("Theoretical Ms*")
+        self.belowTco_2.addItem("\u03BB ab(0)")
+        self.belowTco_2.addItem("Hc2(0)")
 
         self.calcular.clicked.connect(self._getItem)
         self.btnenviar.clicked.connect(self._send)
@@ -513,7 +519,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     corte_y = self.point_y[1] - pendiente * self.point_x[1]
                     corte_x = -((corte_y) / pendiente)
                     self.Tco = corte_x
-                    estad_st = "Tco " + str("{0:.3f}".format(self.Tco))+ " " + "K" 
+                    estad_st = "Tco " + str("{0:.3f}".format(self.Tco))+ " " + "K"
+                    
                     self.resultados.setText(str(estad_st))
                     
                     
@@ -691,8 +698,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self.grafica = []
                         self.grafica.append('')
                         self.grafica.append('T (K)')
-                        self.grafica.append('M (emu/g)')
+                        self.grafica.append('-T/\u0394\u03C7')
                         self._plot(self._position_x,self._position_y, self.grafica, cursor=True)
+                        plt.axhline(0, color='g', xmax=70)
 
                 else:
                     QtWidgets.QMessageBox.critical(self, 'Warning', "You must enter the value of numeric.",
@@ -881,6 +889,16 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         if cursor:
             self.cursor = Cursor(axes, useblit=True, color='green', linewidth=1)
             self.move_cursor = self.canvas.mpl_connect('button_press_event', self._onmove)
+            item = self.aboveTco_2.currentText().strip()
+            if item == "Tirr":
+                self.move_cursor = PolygonSelector(axes, self._onmove,lineprops={'zorder': 5, 'color': 'gray'})
+            if item == "Tco":
+                if self.tco2.isChecked() == True:
+                    axes.axhline(0, color='g', xmax=70)
+                    self.move_cursor = PolygonSelector(axes, self._onmove,lineprops={'zorder': 5, 'color': 'gray'})
+            elif item == "\u03C7":
+                self.move_cursor = PolygonSelector(axes, self._onmove,lineprops={'zorder': 5, 'color': 'gray'})
+
         else:
             if self.move_cursor:
                 self.canvas.mpl_disconnect(self.move_cursor)
@@ -894,7 +912,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         else:
             axes.plot(x, y)
         if len(data_aux_x)>0:
-            axes.plot(data_aux_x, data_aux_y, '-*', color ='orange')
+            axes.plot(data_aux_x, data_aux_y, '-o', color ='orange')
         axes.grid(True)
         self.canvas.draw()
     
@@ -938,7 +956,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         item = self.aboveTco_2.currentText().strip()
         if item == "ZFC":
             filename_output = "../Archivos_csv/ZFC.csv"          
-            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "ZFC",  os.getenv('Home'), 'CSV (*.csv *.tsv *.txt)')
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV',os.getenv('Home'),"Archivos CSV (*.csv);;All Files (*)")
             if path[0] != '':                
                     archive_final= pd.DataFrame({"Temperatura (K)": self.data['Temperature (K)'] , "Magnetizacion":self.data["Magnetizacion"] })
                     archive_final.to_csv(filename_output, header = True, index=False)                    
@@ -949,7 +967,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                                  QtWidgets.QMessageBox.Ok)
         elif item == "Tc":
             filename_output = "../Archivos_csv/TC.csv"          
-            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "TC",  os.getenv('HOME'), 'CSV (*.csv *.tsv *.txt)')
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV',os.getenv('HOME'), "Archivos CSV (*.csv);;All Files (*)")
             if path[0] != '':                                  
                     archive_final= pd.DataFrame({"Temperatura (K)": self.data['Temperature (K)'] , "Magnetizacion":self.data["Magnetizacion"], "Regresión Fase normal x":self.regresionx_p,
                                                 "Regresion Fase normal y": self.regresiony_p, "Regresion Fase Superconductora x": self.regresionx_p1, "Regresion Fase Superconductora y":self.regresiony_p1})
@@ -961,7 +979,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                                  QtWidgets.QMessageBox.Ok)
         elif item == "Tirr":
             filename_output = "../Archivos_csv/Tirr.csv"          
-            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "Tirr",  os.getenv('Home'), 'CSV (*.csv *.tsv *.txt)')
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV',  os.getenv('Home'), "Archivos CSV (*.csv);;All Files (*)")
             if path[0] != '':                
                     archive_final= pd.DataFrame({"Temperatura_FC (K)": self.fc['Temperature (K)'] , "Magnetizacion_FC":self.fc["Magnetizacion"],
                                                 "Temperatura_ZFC (K)": self.zfc['Temperature (K)'] , "Magnetizacion_ZFC":self.zfc["Magnetizacion"]})
@@ -974,7 +992,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         elif item == "Tco":
             if self.tco1.isChecked() == True:
                 filename_output = "../Archivos_csv/Tco_1.csv"          
-                path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "Tco",  os.getenv('Home'), 'CSV (*.csv *.tsv *.txt)')
+                path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV',  os.getenv('Home'), "Archivos CSV (*.csv);;All Files (*)")
                 if path[0] != '':             
                         archive_final= pd.DataFrame({"Temperatura (K)": self.temperaturatco_x, "Suceptibilidad":self.suceptibilidad_y,
                                                     "Temperatura (K)": self.temperaturatco_x1 , "Suceptibilidad":self.suceptibilidad_y1 })
@@ -987,7 +1005,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             
             if self.tco2.isChecked() == True:
                 filename_output = "../Archivos_csv/Tco_2.csv"          
-                path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "Tco",  os.getenv('Home'), 'CSV (*.csv *.tsv *.txt)')
+                path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV',os.getenv('Home'), "Archivos CSV (*.csv);;All Files (*)")
                 if path[0] != '':
 
                         archive_final= pd.DataFrame({"Temperatura (K)": self.temperaturatco1_x, "Delta":self.pos_delta_tco})
@@ -1000,7 +1018,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
          
         elif item == "\u03BE":
             filename_output = "../Archivos_csv/Longitud_coherencia.csv"          
-            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "Longitud_coherencia",  os.getenv('Home'), 'CSV (*.csv *.tsv *.txt)')
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV',  os.getenv('Home'), "Archivos CSV (*.csv);;All Files (*)")
             if path[0] != '':
 
                     archive_final= pd.DataFrame({"Temperatura (K)": self.temperatura_reducida[2:260], "Delta T":self.delta_t_cuadrado[2:260]})
@@ -1013,7 +1031,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             
         elif item == "\u03C7":
             filename_output = "../Archivos_csv/Dimensionalidad.csv"          
-            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "Dimensionalidad",  os.getenv('Home'), 'CSV (*.csv *.tsv *.txt)')
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV',  os.getenv('Home'), "Archivos CSV (*.csv);;All Files (*)")
             if path[0] != '':    
                     archive_final= pd.DataFrame({"Log Temperatura (K)": self.log_temperatura, "Log Delta T":self.inv_delta})
                     archive_final.to_csv(filename_output, header = True, index=False)                    

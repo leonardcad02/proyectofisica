@@ -1,6 +1,6 @@
 ('c:\\users\\ct5\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pyinstaller-4.0-py3.7.egg',
  None,
- {'*.pyd', '*.py', 'EGG-INFO', '*.pyc', '*.cp37-win_amd64.pyd', '*.pyw'},
+ {'EGG-INFO', '*.cp37-win_amd64.pyd', '*.pyd', '*.pyw', '*.pyc', '*.py'},
  'DATA',
  [('PyInstaller\\utils\\pytest.ini',
    'c:\\users\\ct5\\appdata\\local\\programs\\python\\python37\\lib\\site-packages\\pyinstaller-4.0-py3.7.egg\\PyInstaller\\utils\\pytest.ini',
