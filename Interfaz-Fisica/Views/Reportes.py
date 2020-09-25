@@ -2,6 +2,7 @@
 import sys
 from ventana_reportes import *
 from sqlite3 import connect
+
 from PyQt5 import QtPrintSupport
 
 class reportes(QtWidgets.QDialog,Ui_Reportes):
@@ -65,6 +66,7 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
     def _exportarPDF(self):
         datosDB = [(self.muestra,self.Tco,self.Tirr,self.Tco,self.dimensionalidad,self.Asl,self.Bld,self.longitud_coerencia_ab,self.longitud_coerencia_c,self.gamma,self.Fecha)]     
         #print (datosDB)        
+        
         if datosDB:
             self.documento.clear()
             datos = ""
@@ -72,57 +74,90 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
                 datos += "<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" %dato
         reporteHtml = """
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<style>
-h3 {
-    font-family: arial, sans-serif;
-    text-align: center;
-   }
-table {
-       font-family: arial, sans-serif;
-       border-collapse: collapse;
-       width: 100%;
-      }
-td {
-    text-align: left;
-    padding-top: 4px;
-    padding-right: 6px;
-    padding-bottom: 2px;
-    padding-left: 6px;
-   }
-th {
-    text-align: center;
-    padding: 2px;
-    background-color: black;
-    color: white;
-   }
-tr:nth-child(even) {
-                    background-color: #dddddd;
-                   }
-</style>
-</head>
-<body>
-<h3>Critical parameters<br/></h3>
-<table align="center" width="100%" cellspacing="0">
-  <tr>
-    <th>Sample</th>
-    <th>Tc(K)</th>    
-    <th>Tirr (K)</th>
-    <th>Tco (K)</th>
-    <th>\u03C7</th> 
-    <th>Ax \n (1/K)</th>
-    <th>Bld\nx10^-2</th>
-    <th>\u03BE ab(0)(Å)</th>
-    <th>\u03BE c(0)(Å)</th>
-    <th>\u03BB</th>       
-    <th>Date</th>
-  </tr>
-  [DATOS]
-</table>
-
-</body>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"> 
+        
+        <style>
+            table {
+                border-collapse: collapse;
+                margin: 5vh auto;
+                text-align: center;
+                width: 100%;
+            }
+            tr th, td {
+                border-radius: 0px 0px 0px 0px;
+                height: 5vh;
+                font-size: 1.5rem;
+            }
+            th:first-child {
+                border-top-left-radius: 10px;
+            }
+            th:last-child {
+                border-top-right-radius: 10px;
+            }
+            tr:last-child td:first-child { 
+                border-bottom-left-radius: 10px; 
+            }
+            tr:last-child td:last-child { 
+                border-bottom-right-radius: 10px; 
+            }
+            th {
+                background-color: #17ec8e;
+            }
+            td {
+                background-color: #f3d2b2;
+            }
+            img{
+                height: 35vh;
+                width: 40%;
+            }         
+            
+        </style>
+    </head>
+    <body>
+        <div>
+            <div>
+                <aside>
+                    <p><span>invoice</span></p>
+                    <p><span>number 76-981102</span></p>
+                    <p><span>date 2020-09-08</span></p>
+                </aside>
+                <aside></aside>
+            </div>
+            <div>
+                <table>
+                    <tr class="title-table">
+                        <th>Sample</th>
+                        <th>Tc(K)</th>
+                        <th>Tirr(K)</th>
+                        <th>Tco(K)</th>
+                        <th>x</th>
+                        <th>Ax(1/K)</th>
+                        <th>Bld*10^-2</th>
+                        <th>Eab(0)(a)</th>
+                        <th>Ec(0)(a)</th>
+                        <th>Lambda</th>
+                        <th>Date</th>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <div>
+                    <img src = "ZFC.png"></img>
+                    
+                </div>                
+            </div>
+            <div>
+                <div>
+                    <img src = "../Img/Uptc_Logo.png"></img>
+                </div>
+            </div>
+            <div>
+                
+            </div>
+        </div>
+    </body>
 </html>
 """.replace("[DATOS]", datos)
         datos = QtCore.QByteArray()
@@ -130,6 +165,7 @@ tr:nth-child(even) {
         codec = QtCore.QTextCodec.codecForHtml(datos)
         unistr = codec.toUnicode(datos)
 
+        
         if QtCore.Qt.mightBeRichText(unistr):
             self.documento.setHtml(unistr)
 
@@ -163,7 +199,7 @@ tr:nth-child(even) {
             sql = "INSERT INTO abovetco(Muestra, Tc, Tirr, Tco, Dimensionalidad, Asl, Bld, Longitudab, Longitudc," \
                   "Gamma, Fecha) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             
-            cursor.execute(sql, ("Sample",self.Tc, self.Tirr, self.Tco, self.dimensionalidad, self.Asl, self.Bld,
+            cursor.execute(sql, (self.muestra,self.Tc, self.Tirr, self.Tco, self.dimensionalidad, self.Asl, self.Bld,
                     self.longitud_coerencia_ab, self.longitud_coerencia_c, self.gamma, self.Fecha))
 
             conexionDB.commit()                   

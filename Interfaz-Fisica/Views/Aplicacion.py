@@ -22,6 +22,8 @@ from ventana_help import*
 import pandas as pd
 import numpy as np
 import math
+import csv
+import os
 
 from datetime import datetime
 
@@ -72,7 +74,13 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.dimensionalidad = 0
         self.now = datetime.now().strftime('%Y-%m-%d')
         self.imagen = QtGui.QImage()
-
+        self.data = None
+        self.regresionx_p = None
+        self.regresionx_p1 = None
+        self.regresiony_p = None
+        self.regresiony_p1 = None
+        self.zfc = None
+        self.fc = None
         self.initUI()
         self.show()
 
@@ -88,26 +96,29 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         exitAct.setShortcut('Ctrl+q')
         exitAct.triggered.connect(QtWidgets.qApp.quit)
 
-        openFile = QtWidgets.QAction(QtGui.QIcon('../Img/openFile.png'), 'Open', self)
-
-        openFile = QtWidgets.QAction(QtGui.QIcon('../Img/openFile.png'), 'Open', self)
+        
+        openFile = QtWidgets.QAction(QtGui.QIcon('../Img/openFile.png'), 'Open File', self)
         openFile.setShortcut('Ctrl+o')
         openFile.triggered.connect(self._openData)
 
-        Help = QtWidgets.QAction(QtGui.QIcon('../Img/help.png'), 'Help', self)
-        Help.triggered.connect(self._help)
 
         Help = QtWidgets.QAction(QtGui.QIcon('../Img/help.png'), 'Help', self)
         Help.triggered.connect(self._help)
+
+        cleanWindow = QtWidgets.QAction(QtGui.QIcon('../Img/clean.png'),'Clean Window',self)
+        cleanWindow.triggered.connect(self._clean)
+      
 
         self.toolbar = self.addToolBar('Exit')
         self.toolbar.addAction(openFile)
-        self.toolbar.addAction(exitAct)
+        self.toolbar.addAction(cleanWindow)
         self.toolbar.addAction(Help)
+        self.toolbar.addAction(exitAct)       
         self.show()
 
         self.Button_Set.setEnabled(False)
         self.calcular.setEnabled(False)
+        self.exportcsv.setEnabled(False)
         self.Masa.setEnabled(False)
         self.Tinicial.setEnabled(False)
         self.buttonloaded.setEnabled(False)
@@ -141,8 +152,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.Button_Zoom.clicked.connect(self._zoom)
         self.buttonloaded.clicked.connect(self._loaded)
         self.savePicture.clicked.connect (self._savePicture)
+        self.exportcsv.clicked.connect(self._savecsv)
         
-     
     def _getItem(self):        
         item = self.aboveTco_2.currentText().strip()
         if item == "ZFC":
@@ -191,6 +202,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self.Button_Set.setEnabled(True)
             self.aboveTco_2.setEnabled(True)
             self.belowTco_2.setEnabled(True)
+            self.exportcsv.setEnabled(True)
             self.loaded.setPixmap(QtGui.QPixmap("../Img/puntoverde.png"))
 
             self.TableDataset.setColumnCount(len(self.dataset.columns))
@@ -198,7 +210,28 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             for i in range(len(self.dataset.index)):
                 for j in range(len(self.dataset.columns)):
                     self.TableDataset.setItem(i,j,QtWidgets.QTableWidgetItem(str(self.dataset.iloc[i,j])))
-    
+   
+    def _clean(self):
+        self.Masa.clear()
+        self.Muestra.clear()
+        self.Tinicial.clear()
+        self.Tfinal.clear()
+        self.Minicial.clear()
+        self.Mfinal.clear()
+        self.Datoinicialzfc.clear()
+        self.Datofinalzfc.clear()
+        self.Datoinicialfc.clear()
+        self.Datofinalfc.clear()
+        self.Distanciainterplanar.clear()
+        self.size_x_min.clear()
+        self.size_x_max.clear()
+        self.size_y_min.clear()
+        self.size_y_max.clear()
+        #self.TableDataset.clear()
+        #self.TableDataset.setItem(0, 0, QtWidgets.QTableWidgetItem(str("Temperature (K)")))
+        #self.TableDataset.setItem(0, 1, QtWidgets.QTableWidgetItem(str("Magnetic Field (Oe)" )))
+        #self.TableDataset.setItem(0, 2, QtWidgets.QTableWidgetItem(str("Moment (emu)")))
+        
     def _loaded (self):        
         self.df = self.datos.parse(self.field.currentText())         
         self.TableDataset.setColumnCount(len(self.dataset.columns))
@@ -240,14 +273,14 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             try:
                 masa = float(masa)
                 if ((self.dato_inicial.isnumeric() == True)  and (self.dato_final.isnumeric() == True)):                            
-                    self.dato_inicial = int (self.dato_inicial)
+                    self.dato_inicial = int(self.dato_inicial)
                     self.dato_final = int(self.dato_final)       
                     Momentum = self.df['Moment (emu)']
                     Magnetizacion = Momentum / masa
                     self.df["Magnetizacion"] = Magnetizacion
-                    data = self.df[self.dato_inicial:self.dato_final][["Temperature (K)", "Magnetizacion"]]
-                    self._position_x = data['Temperature (K)']
-                    self._position_y = data["Magnetizacion"]
+                    self.data = self.df[self.dato_inicial:self.dato_final][["Temperature (K)", "Magnetizacion"]]
+                    self._position_x = self.data['Temperature (K)']
+                    self._position_y = self.data["Magnetizacion"]
                     self.grafica = []
                     self.grafica.append('')
                     self.grafica.append('T (K)')
@@ -264,8 +297,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
                 return False
             
-    def _arena_size(self):        
-
+    def _arena_size(self):
         if (len(self.size_x_min.text()) > 0 and len(self.size_x_max.text()) > 0 and len(self.size_y_min.text()) > 0 and
                 len(self.size_y_max.text()) > 0):
             self._size_x = [float(self.size_x_min.text()), float(self.size_x_max.text())]
@@ -299,18 +331,18 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         else:
             masa = self.Masa.text()
-            t_inicial = self.Tinicial.text()
-            t_final = self.Tfinal.text()
-            m_inicial = self.Minicial.text()
-            m_final = self.Mfinal.text()
+            t_inicial = self.Minicial.text()
+            t_final = self.Mfinal.text()
+            m_inicial = self.Tinicial.text()
+            m_final = self.Tfinal.text()
             self.dato_inicial = self.Datoinicialzfc.text()
             self.dato_final = self.Datofinalzfc.text()            
             try:
                 masa = float(masa)
-                t_inicial = int(t_inicial)
-                t_final = int(t_final)
-                m_inicial = int(m_inicial)
-                m_final = int(m_final)
+                t_inicial = float(t_inicial)
+                t_final = float(t_final)
+                m_inicial = float(m_inicial)
+                m_final = float(m_final)
                 self.dato_inicial = int(self.dato_inicial)
                 self.dato_final = int (self.dato_final)
 
@@ -346,8 +378,6 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 Pendiente_1 = model1.coef_[0][0]
 
                 self.Tc = (Intercepto_1 - Intercepto) / (Pendiente - Pendiente_1)
-                #y = (Pendiente_1 * self.Tc) + Intercepto_1
-
             
                 self._position_x = []
                 self._position_y = []
@@ -373,10 +403,15 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 self._position_x.append(self.df[self.dato_inicial:self.dato_final]['Temperature (K)'].to_numpy())
                 self._position_x.append(np.array(x_p_aux))
                 self._position_x.append(np.array(x_p1_aux))
-
+                
                 self._position_y.append(self.df[self.dato_inicial:self.dato_final]['Magnetizacion'].to_numpy())
                 self._position_y.append(np.array(y_p_aux))
                 self._position_y.append(np.array(y_p1_aux))
+
+                self.regresionx_p = np.array(x_p_aux)
+                self.regresionx_p1 = np.array(x_p1_aux)
+                self.regresiony_p = np.array(y_p_aux)
+                self.regresiony_p1 = np.array(y_p1_aux)
 
                 self.grafica = []
                 self.grafica.append('')
@@ -384,7 +419,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 self.grafica.append('M (emu/g)')
                 self._plot(self._position_x, self._position_y, self.grafica)
 
-                estad_st = "Tc " + str("{0:.3f}".format(self.Tc) + " " + "°K")                      
+                estad_st = "Tc " + str("{0:.3f}".format(self.Tc) + " " + "K")                      
                 self.resultados.setText(str(estad_st))
                 return True
             except ValueError:
@@ -427,15 +462,15 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     Momentum = self.df['Moment (emu)']
                     Magnetizacion = Momentum / masa
                     self.df["Magnetizacion"] = Magnetizacion
-                    zfc = self.df[dato_inicial:dato_final][["Temperature (K)", "Magnetizacion"]]
-                    fc = self.df[datoInicialFc:datoFinalFc][["Temperature (K)", "Magnetizacion"]]                 
+                    self.zfc = self.df[dato_inicial:dato_final][["Temperature (K)", "Magnetizacion"]]
+                    self.fc = self.df[datoInicialFc:datoFinalFc][["Temperature (K)", "Magnetizacion"]]                 
                     self._position_x = []
                     self._position_y = []
-                    self._position_x.append(fc['Temperature (K)'])
-                    self._position_x.append(zfc['Temperature (K)'])
+                    self._position_x.append(self.fc['Temperature (K)'])
+                    self._position_x.append(self.zfc['Temperature (K)'])
 
-                    self._position_y.append(fc["Magnetizacion"])
-                    self._position_y.append(zfc["Magnetizacion"])
+                    self._position_y.append(self.fc["Magnetizacion"])
+                    self._position_y.append(self.zfc["Magnetizacion"])
 
                     self.grafica = []
                     self.grafica.append('')
@@ -460,7 +495,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 self.point_y = np.append(self.point_y, event.ydata)
                 if self.aboveTco_2.currentText().strip()=="Tirr":                
                     self.Tirr = self.point_x
-                    estad_st = "Tirr " + str("{0:.3f}".format(self.Tirr[0]))+ " " + "°K"                      
+                    estad_st = "Tirr " + str("{0:.3f}".format(self.Tirr[0]))+ " " + "K"                      
                     self.resultados.setText(str(estad_st))
                     self.Tirr = float(self.Tirr[0])
                     
@@ -470,7 +505,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     corte_y = self.point_y[1] - pendiente * self.point_x[1]
                     corte_x = -((corte_y) / pendiente)
                     self.Tco = corte_x
-                    estad_st = "Tco " + str("{0:.3f}".format(self.Tco))+ " " + "°K" 
+                    estad_st = "Tco " + str("{0:.3f}".format(self.Tco))+ " " + "K" 
                     self.resultados.setText(str(estad_st))
                     
                     
@@ -528,7 +563,6 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self.Bld = abs(self.Bld)
                         
                         
-
                         self.longitud_coerencia_ab = (math.sqrt((3 * self.Asl * PI ** 2 * self.s) / (PERMEABILIDAD_VACIO * CONSTATE_BOLTZMANN * math.pi)))
                         
                         self.longitud_coerencia_c = (math.sqrt(self.s * self.Bld) / 2)
@@ -697,12 +731,11 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     self._position_y.append(self.delta_t_cuadrado[2:260])
 
                     self.grafica = []
-                    self.grafica.append('')
-                    
+                    self.grafica.append('')                    
                     self.grafica.append('(T-Tco)/Tco')
-                    self.grafica.append('\u0394\u03C7/(T K)')
+                    self.grafica.append('T/\u0394\u03C7')
                     self._plot(self._position_x, self._position_y, self.grafica, cursor=True)
-                    #self.temperatura_reducida = self.temperatura_reducida.tolist()
+                    
 
                 else:
                     QtWidgets.QMessageBox.critical(self, 'Warning', "You must enter the value of numeric.",
@@ -778,11 +811,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
 
                 self.grafica = []
                 self.grafica.append('')
-                self.grafica.append('Log (-\u0394\u03C7/T) (K^-1)')
-                self.grafica.append('(T-Tco)/Tco')
-                self._plot(self._position_x, self._position_y, self.grafica,cursor=True)
-
+                self.grafica.append('Log(T-Tc0)/Tc0')
+                self.grafica.append('Log(-\u0394\u03C7/T)')
                 
+                self._plot(self._position_x, self._position_y, self.grafica,cursor=True)               
                 
             except ValueError:
                 QtWidgets.QMessageBox.critical(self, "Be Careful", "You must enter the value of numeric the mass or The vector must be equal",
@@ -822,7 +854,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.figure.clear()
         x = np.array(x)
         y = np.array(y)
-        colors = ['K', 'B' ,'G']
+        colors = ['K', 'G' ,'B']
 
         axes = self.figure.add_subplot(1, 1, 1)
         axes.set_title(grafica[0])
@@ -857,10 +889,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                                                                     "Archivos PNG (*.png);;All Files (*)",
                                                                     options=QtWidgets.QFileDialog.Options())
         if imagen:
-            impresion = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
-            #impresion.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
-            impresion.setOutputFileName(figura)            
-            self.imagen.save(figura)
+            figura = plt.savefig(item,bbox_inches='tight')
             QtWidgets.QMessageBox.information(self, "Export to Picture ", "Picture  export successful",
                                     QtWidgets.QMessageBox.Ok)
         else:
@@ -887,6 +916,50 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
     def _reportdatabase(self):
         self.reportesdatos = Ventana_Database()
         self.reportesdatos.exec_()
+
+    def _savecsv(self):
+        item = self.aboveTco_2.currentText().strip()
+        if item == "ZFC":
+            filename_output = "../Archivos_csv/ZFC.csv"          
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "ZFC",  os.getenv('Home'), 'CSV(*.csv)')
+            if path[0] != '':                
+                    archive_final= pd.DataFrame({"Temperatura (K)": self.data['Temperature (K)'] , "Magnetizacion":self.data["Magnetizacion"] })
+                    archive_final.to_csv(filename_output, header = True, index=False)                    
+                    QtWidgets.QMessageBox.information(self, "Exportar a cvs", "Data  export successful   ",
+                                        QtWidgets.QMessageBox.Ok)
+            else:
+                QtWidgets.QMessageBox.critical(self, "Exportar Data", "there is no data to export.   ",
+                                 QtWidgets.QMessageBox.Ok)
+        elif item == "Tc":
+            filename_output = "../Archivos_csv/TC.csv"          
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "TC",  os.getenv('HOME'), 'CSV(*.csv)')
+            if path[0] != '':                                  
+                    archive_final= pd.DataFrame({"Temperatura (K)": self.data['Temperature (K)'] , "Magnetizacion":self.data["Magnetizacion"], "Regresión Fase normal x":self.regresionx_p,
+                                                "Regresion Fase normal y": self.regresiony_p, "Regresion Fase Superconductora x": self.regresionx_p1, "Regresion Fase Superconductora y":self.regresiony_p1})
+                    archive_final.to_csv(filename_output, header = True, index=False)                    
+                    QtWidgets.QMessageBox.information(self, "Exportar  cvs", "Data  export successful   ",
+                                        QtWidgets.QMessageBox.Ok)
+            else:
+                QtWidgets.QMessageBox.critical(self, "Exportar Data", "there is no data to export.   ",
+                                 QtWidgets.QMessageBox.Ok)
+        elif item == "Tirr":
+            filename_output = "../Archivos_csv/Tirr.csv"          
+            path = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', "Tirr",  os.getenv('Home'), 'CSV(*.csv)')
+            if path[0] != '':                
+                    archive_final= pd.DataFrame({"Temperatura_Fc (K)": self.fc['Temperature (K)'] , "Magnetizacion_Fc":self.fc["Magnetizacion"],
+                                                "Temperatura_ZFc (K)": self.zfc['Temperature (K)'] , "Magnetizacion_ZFC":self.zfc["Magnetizacion"]})
+                    archive_final.to_csv(filename_output, header = True, index=False)                    
+                    QtWidgets.QMessageBox.information(self, "Exportar a cvs", "Data  export successful   ",
+                                        QtWidgets.QMessageBox.Ok)
+            else:
+                QtWidgets.QMessageBox.critical(self, "Exportar Data", "there is no data to export.   ",
+                                 QtWidgets.QMessageBox.Ok)
+        elif item == "Tco":
+            pass
+        elif item == "\u03BE":
+            pass
+        elif item == "\u03C7":
+            pass
 
 class Ventana_help(QtWidgets.QDialog, Ui_Help):
     def __init__(self,*args, **kwargs):
@@ -944,7 +1017,6 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
 <!DOCTYPE html>
 <html>
 <head>
-
 <meta charset="UTF-8">
 <style>
 h3 {    
