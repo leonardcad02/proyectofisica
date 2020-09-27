@@ -614,8 +614,8 @@ class Ui_VentanaTco(object):
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'Times New Roman\'; font-size:12pt; font-weight:600; font-style:normal;\">\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#00007f;\">Normal Phase</span></p></body></html>"))
-        self.label_23.setText(_translate("VentanaTco", "<html><head/><body><p><span style=\" color:#00007f;\">Superconducting Phase</span></p></body></html>"))
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#00007f;\">Normal phase</span></p></body></html>"))
+        self.label_23.setText(_translate("VentanaTco", "<html><head/><body><p><span style=\" color:#00007f;\">Superconductor phase</span></p></body></html>"))
         self.groupBox_2.setTitle(_translate("VentanaTco", "Dataset"))
         self.label.setText(_translate("VentanaTco", "Fields"))
         self.label_2.setText(_translate("VentanaTco", "Columns"))

@@ -74,7 +74,7 @@ class Ui_mainWindow(object):
         self.Logo_GFM = QtWidgets.QLabel(self.centralwidget)
         self.Logo_GFM.setGeometry(QtCore.QRect(30, 40, 81, 81))
         self.Logo_GFM.setText("")
-        self.Logo_GFM.setPixmap(QtGui.QPixmap("../Img/gsm_1.jpg"))
+        self.Logo_GFM.setPixmap(QtGui.QPixmap("../Img/GSM.jpg"))
         self.Logo_GFM.setScaledContents(True)
         self.Logo_GFM.setObjectName("Logo_GFM")
         self.Logo_Telematics = QtWidgets.QLabel(self.centralwidget)
