@@ -17,8 +17,7 @@ from ventana_principal import *
 
 from Aplicacion import *
 
-#qtCreatorFile = '../QtDesigner/ventana_principal.ui'
-#Ui_MainWindow,QtBaseClass = uic.loadUiType(qtCreatorFile)
+
 
 class MainWindow(QtWidgets.QMainWindow,Ui_mainWindow):
     def __init__(self,*args, **kwargs):

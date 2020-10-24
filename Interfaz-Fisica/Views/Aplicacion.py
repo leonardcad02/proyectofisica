@@ -548,7 +548,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     self.point_y = aux_[0][pos_x_mayor[0]: pos_x_menor[-1]]
 
                     try:
-                        PI = 2.067833636e-15
+                        FI = 2.067833636e-15
                         PERMEABILIDAD_VACIO = 1.256637061e-6
                         CONSTATE_BOLTZMANN = 1.380648e-23 
 
@@ -574,6 +574,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         a = poly_model.coef_[0][2]                        
                         b = poly_model.intercept_[0]
 
+                        print (a)
+                        print (b)
+
                        
                         self.Asl = 1 / (math.sqrt(4 * abs(a)))
                         self.Bld = b * (self.Asl ** 2) 
@@ -581,7 +584,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self.Bld = abs(self.Bld)
                         
                         
-                        self.longitud_coerencia_ab = (math.sqrt((3 * self.Asl * PI ** 2 * self.s) / (PERMEABILIDAD_VACIO * CONSTATE_BOLTZMANN * math.pi)))
+                        self.longitud_coerencia_ab = (math.sqrt((3 * self.Asl * FI ** 2 * self.s) / (PERMEABILIDAD_VACIO * CONSTATE_BOLTZMANN * math.pi)))
                         
                         self.longitud_coerencia_c = (math.sqrt(self.s * self.Bld) / 2)
                         
@@ -659,6 +662,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     delta_x = suceptibilidad - inv_x_normal
                     self.delta_t = temperatura[dato_inicial:dato_final] / delta_x
                     pos_delta_t = (-1 * (self.delta_t))
+
+                    
                    
 
                     if self.tco1.isChecked() == True:
@@ -747,6 +752,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     self.temperatura_reducida = (temperatura - self.Tco) / self.Tco
                     self.delta_t_cuadrado = (self.delta_t[dato_inicial:dato_final] ** 2)
 
+                   
                     
                     self._position_x = []
                     self._position_y = []
@@ -759,7 +765,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     self.grafica = []
                     self.grafica.append('')                    
                     self.grafica.append('(T-Tco)/Tco')
-                    self.grafica.append('T/\u0394\u03C7')
+                    self.grafica.append('(T/\u0394\u03C7)^2')
                     self._plot(self._position_x, self._position_y, self.grafica, cursor=True)
                     
 
