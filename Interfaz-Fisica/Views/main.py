@@ -25,7 +25,7 @@ class MainWindow(QtWidgets.QMainWindow,Ui_mainWindow):
         self.setupUi(self)
         self.title = 'DETERMINATION OF CRITICAL PARAMETERS FROM STUDY OF MAGNETICS FLUCTUATIONS IN HTCS'
         self.iconName = "../img/Telematica.png"
-        self.title = 'Determinación de parametros criticos'
+        self.title = 'DETERMINATION OF CRITICAL PARAMETERS FROM STUDY OF MAGNETICS FLUCTUATIONS IN HTCS'
         self.iconName = "../Img/Telematica.png"
         self.setWindowTitle(self.title)
         self.setMinimumSize(713,469)

@@ -12,7 +12,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import sklearn
 #import sklearn.utils._cython_blas
 from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import r2_score
+#from sklearn.preprocessing import PolynomialFeatures
+from numpy import poly1d, polyfit
+
 from sklearn.model_selection import train_test_split
 
 from Reportes import *
@@ -546,36 +549,33 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     aux_ = np.array(self._position_y)
                     self.point_x = aux[0][pos_x_mayor[0]: pos_x_menor[-1]]
                     self.point_y = aux_[0][pos_x_mayor[0]: pos_x_menor[-1]]
-
+                    print ("Datos de Temperatura",self.point_x)
+                    print ("Datos de Delta_t^2 ",self.point_y)    
                     try:
                         FI = 2.067833636e-15
                         PERMEABILIDAD_VACIO = 1.256637061e-6
                         CONSTATE_BOLTZMANN = 1.380648e-23 
 
                         
-                        delta_t_sum =self.point_x
-                        t_reducida = self.point_y
+                        delta_t_sum =self.point_y
+                        t_reducida = self.point_x
+                        
+                        x = t_reducida
+                        y = delta_t_sum
+                        
                         
 
-                        y = pd.DataFrame(delta_t_sum)
-                        x = pd.DataFrame(t_reducida)
+                        modelo = poly1d(polyfit(x,y,2))
+                        print("R^2")
+                        print(r2_score(y, modelo(x)))
+                        print('Polinomio')    
+                        print (modelo)
                         
-
-                        X_train, X_test, y_train,y_test= train_test_split(x, y, test_size=0.25)
-                        X_train = X_train.values.reshape([X_train.values.shape[0], 1])
-                        X_test = X_test.values.reshape([X_test.values.shape[0], 1])
-
-
-                        poly_features = PolynomialFeatures(degree=2)
-                        X_poly = poly_features.fit_transform(X_train)
-                        poly_model = LinearRegression()
-                        poly_model.fit(X_poly, y_train)
-
-                        a = poly_model.coef_[0][2]                        
-                        b = poly_model.intercept_[0]
-
-                        print (a)
-                        print (b)
+                        a = modelo[2]
+                        b = modelo[1]
+                       
+                        print ('a',a)
+                        print ('b',b)
 
                        
                         self.Asl = 1 / (math.sqrt(4 * abs(a)))
@@ -588,8 +588,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         
                         self.longitud_coerencia_c = (math.sqrt(self.s * self.Bld) / 2)
                         
-                        self.gamma = self.longitud_coerencia_ab / self.longitud_coerencia_c
-                        
+                        self.gamma = self.longitud_coerencia_ab / self.longitud_coerencia_c                        
+                      
                         
                         estad_st =  "Asl" + " " + str("{0:.3E}".format(self.Asl))+'\n' +\
                                     "Bld" + " "  + str("{0:.3E}".format(self.Bld))+'\n' +\
@@ -658,12 +658,18 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     pendiente = model.coef_[0][0]
 
                     x_normal = pendiente * (temperatura[dato_inicial:dato_final]) + intercepto
-                    inv_x_normal = 1 / (x_normal)                    
+                    inv_x_normal = 1 / (x_normal)                     
                     delta_x = suceptibilidad - inv_x_normal
                     self.delta_t = temperatura[dato_inicial:dato_final] / delta_x
                     pos_delta_t = (-1 * (self.delta_t))
-
                     
+                    m_normal = self.df["Magnetic Field (Oe)"] * inv_x_normal
+                    delta_m = suceptibilidad - m_normal
+
+                    delta_x2 = delta_m / self.df["Magnetic Field (Oe)"]
+                    self.delta_t2 =  temperatura[dato_inicial:dato_final] / delta_x2
+
+                    pos_delta_t2 = (-1 * self.delta_t2)
                    
 
                     if self.tco1.isChecked() == True:
@@ -686,7 +692,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self.grafica = []
                         self.grafica.append('')
                         self.grafica.append('T (K)')
-                        self.grafica.append('M (emu/g)')
+                        self.grafica.append('/u03C7 (emu/gOe)')
                         self._plot(self._position_x, self._position_y, self.grafica)
 
                     if self.tco2.isChecked() == True:
@@ -698,15 +704,17 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
 
                         self._position_x.append(temperatura[dato_inicial:dato_final])                
 
-                        self._position_y.append(pos_delta_t[dato_inicial:dato_final])
+                        self._position_y.append(pos_delta_t2[dato_inicial:dato_final])
 
                         self.temperaturatco1_x = temperatura[dato_inicial:dato_final]
                         self.pos_delta_tco = pos_delta_t[dato_inicial:dato_final]
+                        print (temperatura[dato_inicial:dato_final])
+                        print (self.pos_delta_tco)
 
                         self.grafica = []
                         self.grafica.append('')
                         self.grafica.append('T (K)')
-                        self.grafica.append('-T/\u0394\u03C7')
+                        self.grafica.append('-T/\u0394\u03C7 (K)')
                         self._plot(self._position_x,self._position_y, self.grafica, cursor=True)
                         plt.axhline(0, color='g', xmax=70)
 
@@ -752,6 +760,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     self.temperatura_reducida = (temperatura - self.Tco) / self.Tco
                     self.delta_t_cuadrado = (self.delta_t[dato_inicial:dato_final] ** 2)
 
+                    self.delta_t2_cuadrado = (self.delta_t2[dato_inicial:dato_final] ** 2)
+
                    
                     
                     self._position_x = []
@@ -759,7 +769,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
 
                     
                     self._position_x.append(self.temperatura_reducida[2:260])            
-                    self._position_y.append(self.delta_t_cuadrado[2:260])
+                    self._position_y.append(self.delta_t2_cuadrado[2:260])
 
 
                     self.grafica = []

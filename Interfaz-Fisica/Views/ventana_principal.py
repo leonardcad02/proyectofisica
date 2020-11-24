@@ -42,7 +42,7 @@ class Ui_mainWindow(object):
         font.setBold(True)
         font.setWeight(75)
         self.DataEntry.setFont(font)
-        self.DataEntry.setObjectName("DataEntry")
+        self.DataEntry.setObjectName("Input Data")
         self.SoftwareDescription = QtWidgets.QPushButton(self.centralwidget)
         self.SoftwareDescription.setGeometry(QtCore.QRect(220, 300, 271, 41))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
@@ -56,7 +56,7 @@ class Ui_mainWindow(object):
         font.setBold(True)
         font.setWeight(75)
         self.SoftwareDescription.setFont(font)
-        self.SoftwareDescription.setObjectName("SoftwareDescription")
+        self.SoftwareDescription.setObjectName("Software Manual")
         self.Abbreviations = QtWidgets.QPushButton(self.centralwidget)
         self.Abbreviations.setGeometry(QtCore.QRect(220, 350, 271, 41))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
@@ -109,8 +109,8 @@ class Ui_mainWindow(object):
         mainWindow.setWindowTitle(_translate("mainWindow", "MainWindow"))
         self.label.setText(_translate("mainWindow", "<html><head/><body><p align=\"center\"><span style=\" font-size:16pt; font-weight:600;\">DETERMINATION OF CRITICAL </span></p><p align=\"center\"><span style=\" font-size:16pt; font-weight:600;\">PARAMETERS FROM THE STUDY OF</span></p><p align=\"center\"><span style=\" font-size:16pt; font-weight:600;\">MAGNETIC FLUCTUACTIONS </span></p><p align=\"center\"><span style=\" font-size:16pt; font-weight:600;\">IN HTCS  </span></p></body></html>"))
         self.Description.setText(_translate("mainWindow", "Description of the Theoretical Model"))
-        self.DataEntry.setText(_translate("mainWindow", "Data Entry"))
-        self.SoftwareDescription.setText(_translate("mainWindow", "Software Description "))
+        self.DataEntry.setText(_translate("mainWindow", "Input Data"))
+        self.SoftwareDescription.setText(_translate("mainWindow", "Software Manual"))
         self.Abbreviations.setText(_translate("mainWindow", "Abbreviations"))
 
 
