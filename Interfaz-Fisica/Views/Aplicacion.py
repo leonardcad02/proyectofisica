@@ -85,6 +85,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.regresiony_p1 = None
         self.zfc = None
         self.fc = None
+        self.pendiente_tco = None
+        self.intercepto = None
+        self.pos_delta_t2 = None
         self.temperaturatco_x   =None
         self.suceptibilidad_y   =None
         self.temperaturatco_x1  =None
@@ -133,6 +136,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.exportcsv.setEnabled(False)
         self.Masa.setEnabled(False)
         self.Tinicial.setEnabled(False)
+        self.Tinitial.setEnabled(False)
+        self.Tinitial1.setEnabled(False)
+        self.Tend.setEnabled(False)
+        self.Tend1.setEnabled(False)    
         self.buttonloaded.setEnabled(False)
         self.Muestra.setEnabled(False)
         self.savePicture.setEnabled (False)
@@ -152,6 +159,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.belowTco_2.setEnabled(False)
         self.tco1.setEnabled(False)
         self.tco2.setEnabled(False)
+        self.tco0.setEnabled(False)
         
         self.fecha.setText(str(self.now))
         self.aboveTco_2.addItem("\u03BE")
@@ -160,7 +168,6 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.belowTco_2.addItem("\u0394 M*,T*")
         self.belowTco_2.addItem("Theoretical Ms*")
         self.belowTco_2.addItem("\u03BB ab(0)")
-        self.belowTco_2.addItem("Hc2(0)")
 
         self.calcular.clicked.connect(self._getItem)
         self.btnenviar.clicked.connect(self._send)
@@ -187,6 +194,24 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self._dimensionalidad()
    
     def _openData(self):
+        self.Masa.clear()
+        self.Muestra.clear()
+        self.Tinicial.clear()
+        self.Tfinal.clear()
+        self.Minicial.clear()
+        self.Mfinal.clear()
+        self.Datoinicialzfc.clear()
+        self.Datofinalzfc.clear()
+        self.Datoinicialfc.clear()
+        self.Datofinalfc.clear()
+        self.Distanciainterplanar.clear()
+        self.size_x_min.clear()
+        self.size_x_max.clear()
+        self.size_y_min.clear()
+        self.size_y_max.clear()
+        self.field.clear()
+        self.column.clear()
+        self.figure.clear()
         filePath, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', 'c:\\', 'xlsx(*.xlsx)')
         if filePath == "":
             QtWidgets.QMessageBox.question(self, 'Message', "Must Upload a File" + "", QtWidgets.QMessageBox.Ok,
@@ -203,6 +228,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self.savePicture.setEnabled (True)
             self.Tinicial.setEnabled(True)
             self.Tfinal.setEnabled(True)
+            self.Tinitial.setEnabled(True)
+            self.Tinitial1.setEnabled(True)
+            self.Tend.setEnabled(True)
+            self.Tend1.setEnabled(True)
             self.Minicial.setEnabled(True)
             self.Mfinal.setEnabled(True)
             self.Datoinicialzfc.setEnabled(True)
@@ -223,8 +252,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self.loaded.setPixmap(QtGui.QPixmap("../Img/puntoverde.png"))
 
             self.TableDataset.setColumnCount(len(self.dataset.columns))
-            self.TableDataset.setRowCount(len(self.dataset.index))
-            for i in range(len(self.dataset.index)):
+            self.TableDataset.setRowCount(len(self.df.index))
+            
+            for i in range(len(self.df.index)):
                 for j in range(len(self.dataset.columns)):
                     self.TableDataset.setItem(i,j,QtWidgets.QTableWidgetItem(str(self.dataset.iloc[i,j])))
    
@@ -247,18 +277,16 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.field.clear()
         self.column.clear()
         self.figure.clear()
-        #self.TableDataset.clear()
-        #self.TableDataset.setItem(0, 0, QtWidgets.QTableWidgetItem(str("Temperature (K)")))
-        #self.TableDataset.setItem(0, 1, QtWidgets.QTableWidgetItem(str("Magnetic Field (Oe)" )))
-        #self.TableDataset.setItem(0, 2, QtWidgets.QTableWidgetItem(str("Moment (emu)")))
         
-    def _loaded (self):        
-        self.df = self.datos.parse(self.field.currentText())         
+        
+    def _loaded (self):     
+        self.df = self.datos.parse(self.field.currentText())
         self.TableDataset.setColumnCount(len(self.dataset.columns))
-        self.TableDataset.setRowCount(len(self.dataset.index))
-        for i in range(len(self.dataset.index)):
+        self.TableDataset.setRowCount(len(self.df.index))
+        print(len(self.df.index))        
+        for i in range(len(self.df.index)):
             for j in range(len(self.dataset.columns)):
-                self.TableDataset.setItem(i,j,QtWidgets.QTableWidgetItem(str(self.df.iloc[i,j])))
+                self.TableDataset.setItem(i,j,QtWidgets.QTableWidgetItem(str(self.df.iloc[i,j])))       
 
     def _help(self):
         self.ventana = Ventana_help()
@@ -343,7 +371,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
 
         self.df = self.datos.parse(self.field.currentText())
 
-        if (self.Tinicial.text() == "" or self.Tfinal.text() == "" or self.Minicial.text() == "" or self.Mfinal.text() == "" or self.Datoinicialzfc.text() == "" or self.Datofinalzfc.text() == ""):
+        if (self.Tinicial.text() == "" or self.Tfinal.text() == "" or self.Minicial.text() == "" or self.Mfinal.text() == ""
+             or self.Datoinicialzfc.text() == "" or self.Datofinalzfc.text() == "" or self.Tinitial.text() =="" or self.Tinitial1.text() == ""
+             or self.Tend.text() == "" or self.Tend1.text() ==""):
+
             QtWidgets.QMessageBox.question(self, 'TC', "You must fill all the fields." + "",
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         elif self.Masa.text() == "":
@@ -351,6 +382,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                                            QtWidgets.QMessageBox.Ok, QtWidgets.QMessageBox.Ok)
         else:
             masa = self.Masa.text()
+            t_Initial = self.Tinitial.text()
+            t_Initial1 = self.Tinitial1.text()
+            t_end = self.Tend.text()
+            t_end1 = self.Tend1.text()
             t_inicial = self.Tinicial.text()
             t_final = self.Tfinal.text()
             m_inicial = self.Minicial.text()
@@ -359,6 +394,10 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self.dato_final = self.Datofinalzfc.text()            
             try:
                 masa = float(masa)
+                t_Initial = int(t_Initial)
+                t_Initial1 = int(t_Initial1)
+                t_end = int(t_end)
+                t_end1 = int(t_end1)
                 t_inicial = float(t_inicial)
                 t_final = float(t_final)
                 m_inicial = float(m_inicial)
@@ -373,10 +412,13 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 inv_suceptibilidad = 1 / (suceptibilidad)
                 self.df["suceptibilidad"] = inv_suceptibilidad
 
-                datax = self.df[74:264][["Temperature (K)"]]
-                datay = self.df[74:264][["Magnetizacion"]]
-                datax1 = self.df[0:24][["Temperature (K)"]]
-                datay1 = self.df[0:24][["Magnetizacion"]]
+                datax = self.df[t_Initial1:t_end1][["Temperature (K)"]]
+                datay = self.df[t_Initial1:t_end1][["Magnetizacion"]]
+
+               
+                
+                datax1 = self.df[t_Initial:t_end][["Temperature (K)"]]
+                datay1 = self.df[t_Initial:t_end][["Magnetizacion"]]
 
                 model = LinearRegression()
                 model1 = LinearRegression()
@@ -528,7 +570,15 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     estad_st = "Tco " + str("{0:.3f}".format(self.Tco))+ " " + "K"
                     
                     self.resultados.setText(str(estad_st))
-                    
+
+                    if self.tco0.isChecked() == True:
+                        self.resultados.clear()
+                        self.pendiente_tco = (self.point_y[0] - self.point_y[1]) / (self.point_x[0] - self.point_x[1])
+                        self.intercepto = self.point_y[1] - pendiente * self.point_x[1]                        
+                        estad_st = "slope : " + str((self.pendiente_tco))+ '\n' + \
+                                   "Intercept :" + str((self.intercepto))                    
+                        self.resultados.setText(str(estad_st))
+
                     
 
                 elif self.aboveTco_2.currentText().strip()=="\u03C7":                     
@@ -584,7 +634,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self.Bld = abs(self.Bld)
                         
                         
-                        self.longitud_coerencia_ab = (math.sqrt((3 * self.Asl * FI ** 2 * self.s) / (PERMEABILIDAD_VACIO * CONSTATE_BOLTZMANN * math.pi)))
+                        self.longitud_coerencia_ab = (math.sqrt((3 * self.Asl * (FI ** 2) * self.s) / (PERMEABILIDAD_VACIO * CONSTATE_BOLTZMANN * math.pi)))
                         
                         self.longitud_coerencia_c = (math.sqrt(self.s * self.Bld) / 2)
                         
@@ -610,6 +660,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                 self.point_y = []
 
     def _tco(self):
+        self.tco0.setEnabled(True)
         self.tco1.setEnabled(True)
         self.tco2.setEnabled(True)
         self.size_x_max.clear()
@@ -641,41 +692,41 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     Magnetizacion = Momentum / masa
                     self.df["Magnetizacion"] = Magnetizacion
                     suceptibilidad = (self.df["Magnetizacion"]) / (self.df["Magnetic Field (Oe)"])
-                    inv_suceptibilidad = 1 / (suceptibilidad)
-                    self.df["suceptibilidad"] = inv_suceptibilidad
-
-                    data_x = self.df[75:170]['Temperature (K)']
-                    data_y = self.df[75:170]['suceptibilidad']
-
-                    data_x = pd.DataFrame(data_x)
-                    data_y = pd.DataFrame(data_y)
-
-                    model = LinearRegression()
-
-                    model.fit(data_x, data_y)
-
-                    intercepto = model.intercept_[0]
-                    pendiente = model.coef_[0][0]
-
-                    x_normal = pendiente * (temperatura[dato_inicial:dato_final]) + intercepto
-                    inv_x_normal = 1 / (x_normal)                     
-                    delta_x = suceptibilidad - inv_x_normal
-                    self.delta_t = temperatura[dato_inicial:dato_final] / delta_x
-                    pos_delta_t = (-1 * (self.delta_t))
+                    inv_suceptibilidad = (1 / (suceptibilidad))
                     
-                    m_normal = self.df["Magnetic Field (Oe)"] * inv_x_normal
-                    delta_m = suceptibilidad - m_normal
 
-                    delta_x2 = delta_m / self.df["Magnetic Field (Oe)"]
-                    self.delta_t2 =  temperatura[dato_inicial:dato_final] / delta_x2
+                    if self.tco0.isChecked() == True:
+                        self._position_x = []
+                        self._position_y = []
 
-                    pos_delta_t2 = (-1 * self.delta_t2)
-                   
+                        self.point_x = []
+                        self.point_y = []
+
+                        self._position_x.append(temperatura[dato_inicial:dato_final])
+                        self._position_y.append(inv_suceptibilidad[dato_inicial:dato_final])
+                        self.grafica = []
+                        self.grafica.append('')
+                        self.grafica.append('T (K)')
+                        self.grafica.append('1/\u03C7')
+                        self._plot(self._position_x, self._position_y, self.grafica,cursor=True)
 
                     if self.tco1.isChecked() == True:
                         self._position_x = []
                         self._position_y = []
-                       
+
+                        x_normal = self.pendiente_tco * (temperatura[dato_inicial:dato_final]) + self.intercepto
+                        inv_x_normal = 1 / (x_normal)                     
+                        delta_x = suceptibilidad - inv_x_normal
+                        self.delta_t = temperatura[dato_inicial:dato_final] / delta_x
+                        pos_delta_t = (-1 * (self.delta_t))
+                        
+                        m_normal = self.df["Magnetic Field (Oe)"] / x_normal
+                        delta_m = Magnetizacion - m_normal
+
+                        delta_x2 = delta_m / self.df["Magnetic Field (Oe)"]
+                        self.delta_t2 =  temperatura[dato_inicial:dato_final] / delta_x2
+
+                        self.pos_delta_t2 = (-1 * self.delta_t2)                  
                         vector = inv_x_normal.shape
                                                     
                         self._position_x.append(temperatura[dato_inicial:vector[0]])
@@ -692,7 +743,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self.grafica = []
                         self.grafica.append('')
                         self.grafica.append('T (K)')
-                        self.grafica.append('/u03C7 (emu/gOe)')
+                        self.grafica.append('\u03C7 (emu/gOe)')
                         self._plot(self._position_x, self._position_y, self.grafica)
 
                     if self.tco2.isChecked() == True:
@@ -702,14 +753,12 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                         self.point_x = []
                         self.point_y = []                   
 
-                        self._position_x.append(temperatura[dato_inicial:dato_final])                
+                        self._position_x.append(temperatura[dato_inicial:dato_final])                                      
 
-                        self._position_y.append(pos_delta_t2[dato_inicial:dato_final])
+                        self._position_y.append(self.pos_delta_t2[dato_inicial:dato_final])
 
-                        self.temperaturatco1_x = temperatura[dato_inicial:dato_final]
-                        self.pos_delta_tco = pos_delta_t[dato_inicial:dato_final]
-                        print (temperatura[dato_inicial:dato_final])
-                        print (self.pos_delta_tco)
+
+                         
 
                         self.grafica = []
                         self.grafica.append('')
@@ -760,17 +809,13 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                     self.temperatura_reducida = (temperatura - self.Tco) / self.Tco
                     self.delta_t_cuadrado = (self.delta_t[dato_inicial:dato_final] ** 2)
 
-                    self.delta_t2_cuadrado = (self.delta_t2[dato_inicial:dato_final] ** 2)
-
-                   
+                    self.delta_t2_cuadrado = (self.delta_t2[dato_inicial:dato_final] ** 2)                   
                     
                     self._position_x = []
                     self._position_y = []
-
                     
                     self._position_x.append(self.temperatura_reducida[2:260])            
                     self._position_y.append(self.delta_t2_cuadrado[2:260])
-
 
                     self.grafica = []
                     self.grafica.append('')                    
@@ -914,6 +959,8 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             if item == "Tco":
                 if self.tco2.isChecked() == True:
                     axes.axhline(0, color='g', xmax=70)
+                    self.move_cursor = PolygonSelector(axes, self._onmove,lineprops={'zorder': 5, 'color': 'gray'})
+                elif self.tco0.isChecked() == True:
                     self.move_cursor = PolygonSelector(axes, self._onmove,lineprops={'zorder': 5, 'color': 'gray'})
             elif item == "\u03C7":
                 self.move_cursor = PolygonSelector(axes, self._onmove,lineprops={'zorder': 5, 'color': 'gray'})
