@@ -28,13 +28,13 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
 
         # create table belowTco
 
-        self.tablebelowTco.setItem(0, 0, QtWidgets.QTableWidgetItem("Sample"))
-        self.tablebelowTco.setItem(0, 1, QtWidgets.QTableWidgetItem("T(K)"))
-        self.tablebelowTco.setItem(0, 2, QtWidgets.QTableWidgetItem("Tirr"))
-        self.tablebelowTco.setItem(0, 3, QtWidgets.QTableWidgetItem("Theoretical"))
-        self.tablebelowTco.setItem(0, 4, QtWidgets.QTableWidgetItem("\u03C7" + " (0) (A)"))
-        self.tablebelowTco.setItem(0, 5, QtWidgets.QTableWidgetItem("\u03C7"))
-        self.tablebelowTco.setItem(0, 6, QtWidgets.QTableWidgetItem("Hc2 (O) (Oe)"))
+        #self.tablebelowTco.setItem(0, 0, QtWidgets.QTableWidgetItem("Sample"))
+        #self.tablebelowTco.setItem(0, 1, QtWidgets.QTableWidgetItem("T(K)"))
+        #self.tablebelowTco.setItem(0, 2, QtWidgets.QTableWidgetItem("Tirr"))
+        #self.tablebelowTco.setItem(0, 3, QtWidgets.QTableWidgetItem("Theoretical"))
+        #self.tablebelowTco.setItem(0, 4, QtWidgets.QTableWidgetItem("\u03C7" + " (0) (A)"))
+        #self.tablebelowTco.setItem(0, 5, QtWidgets.QTableWidgetItem("\u03C7"))
+        #self.tablebelowTco.setItem(0, 6, QtWidgets.QTableWidgetItem("Hc2 (O) (Oe)"))
 
         self.muestra = ""
         self.Tc = 0
@@ -48,16 +48,6 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
         self.dimensionalidad = 0
         self.Fecha = ""       
         
-
-        # Define values of critical parameters belowTco
-        # self.tablebelowTco.setItem(0, 0, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(12.5))))
-        # self.tablebelowTco.setItem(0, 1, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(12.5))))
-        # self.tablebelowTco.setItem(0, 2, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(12.5))))
-        # self.tablebelowTco.setItem(0, 4, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(12.5))))
-        # self.tablebelowTco.setItem(0, 5, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(12.5))))
-        # self.tablebelowTco.setItem(0, 3, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(12.5))))
-        # self.tablebelowTco.setItem(0, 6, QtWidgets.QTableWidgetItem(str("{0:.2f}".format(12.5))))
-
 
         self.exportopdf.clicked.connect(self._exportarPDF)
         self.saveDatabase.clicked.connect(self._saveData)       

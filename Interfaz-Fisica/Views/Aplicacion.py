@@ -156,7 +156,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.size_y_min.setEnabled(False)
         self.size_y_max.setEnabled(False)
         self.aboveTco_2.setEnabled(False)
-        self.belowTco_2.setEnabled(False)
+        
         self.tco1.setEnabled(False)
         self.tco2.setEnabled(False)
         self.tco0.setEnabled(False)
@@ -165,9 +165,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.aboveTco_2.addItem("\u03BE")
         self.aboveTco_2.addItem("\u03C7")
 
-        self.belowTco_2.addItem("\u0394 M*,T*")
-        self.belowTco_2.addItem("Theoretical Ms*")
-        self.belowTco_2.addItem("\u03BB ab(0)")
+       
 
         self.calcular.clicked.connect(self._getItem)
         self.btnenviar.clicked.connect(self._send)
@@ -247,7 +245,6 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
             self.buttonloaded.setEnabled (True)
             self.Button_Set.setEnabled(True)
             self.aboveTco_2.setEnabled(True)
-            self.belowTco_2.setEnabled(True)
             self.exportcsv.setEnabled(True)
             self.loaded.setPixmap(QtGui.QPixmap("../Img/puntoverde.png"))
 
