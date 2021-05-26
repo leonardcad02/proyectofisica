@@ -20,7 +20,7 @@ from sklearn.model_selection import train_test_split
 
 from Reportes import *
 from ventana_data import *
-from ventana_database import *
+from windowsDatabase import *
 from ventana_help import*
 
 import pandas as pd
@@ -274,7 +274,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         self.field.clear()
         self.column.clear()
         self.figure.clear()
-        
+  
         
     def _loaded (self):     
         self.df = self.datos.parse(self.field.currentText())
@@ -642,9 +642,9 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
                                     "Bld" + " "  + str("{0:.3E}".format(self.Bld))+'\n' +\
                                     "\u03BE"+"ab " + str("{0:.3E}".format(self.longitud_coerencia_ab))+'\n' +\
                                     "\u03BE"+"c " + str("{0:.3E}".format(self.longitud_coerencia_c)) + '\n' +\
-                                    "\u03B3" + " "+ str("{0:.3E}".format(self.gamma))
+                                    "\u03b3" +str("{0:.3f}".format(self.gamma))
                         self.resultados.setText(str(estad_st))
-                        
+                    
                         #return True
                     except ValueError:
                         QtWidgets.QMessageBox.question(self, 'Error', "You must enter the value of numeric  or The vector must be equal" + "",
@@ -1012,7 +1012,7 @@ class App(QtWidgets.QMainWindow, Ui_VentanaTco):
         plt.show()
         
     def _reportdatabase(self):
-        self.reportesdatos = Ventana_Database()
+        self.reportesdatos = windowsDatabase()
         self.reportesdatos.exec_()
 
     def _savecsv(self):
@@ -1110,7 +1110,7 @@ class Ventana_help(QtWidgets.QDialog, Ui_Help):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self) 
 
-class Ventana_Database(QtWidgets.QDialog,Ui_Database):
+class windowsDatabase(QtWidgets.QDialog,Ui_Database):
     def __init__(self,*args, **kwargs):
         QtWidgets.QDialog.__init__(self, *args, **kwargs)
         self.setupUi(self)   
@@ -1119,7 +1119,7 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
         # =================== WIDGET QTREEWIDGET ===================
         #self.treeaboveTco.setHeaderHidden(True)
         self.treeaboveTco.setRootIsDecorated(True)
-        self.treeaboveTco.setHeaderLabels(["Sample", "Tc (K)", "Tirr (K)", "Tco (K)", "\u03C7", "Ax (x10^-8) (1/K)", "Bld", "\u03C7" + "c" + " (0) (Å)", "\u03BE" + "c" + " (0) (Å)", "\u03BB", "Date"])
+        self.treeaboveTco.setHeaderLabels(["Sample", "Tc (K)", "Tirr (K)", "Tco (K)", "\u03C7", "Ax (x10^-8) (1/K)", "Bld", "\u03C7" + "c" + " (0) (Å)", "\u03BE" + "c" + " (0) (Å)", "\u03b3", "Date"])
 
         self.model = self.treeaboveTco.model()
 
@@ -1132,7 +1132,7 @@ class Ventana_Database(QtWidgets.QDialog,Ui_Database):
         # =================== EVENTOS QPUSHBUTTON ==================
 
         self.searchAbove.clicked.connect(self._searchAboveTco)
-        self.searchBelow.setEnabled(False)
+        
         #self.searchBelow.clicked.connect(self._searchBelowTco)
         self.buttonLimpiar.clicked.connect(self._tableclean)
 

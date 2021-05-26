@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import sys
-from ventana_reportes import *
+from windowReports import *
 from sqlite3 import connect
 
 from PyQt5 import QtPrintSupport
@@ -16,25 +16,15 @@ class reportes(QtWidgets.QDialog,Ui_Reportes):
 
         self.tableaboveTco.setItem(0, 0, QtWidgets.QTableWidgetItem("Sample"))
         self.tableaboveTco.setItem(0, 1, QtWidgets.QTableWidgetItem("Tc (K)"))
-        self.tableaboveTco.setItem(0, 2, QtWidgets.QTableWidgetItem("Tirr"))
+        self.tableaboveTco.setItem(0, 2, QtWidgets.QTableWidgetItem("Tirr (K)"))
         self.tableaboveTco.setItem(0, 3, QtWidgets.QTableWidgetItem("Tco (K)"))
         self.tableaboveTco.setItem(0, 4, QtWidgets.QTableWidgetItem("\u03C7"))
         self.tableaboveTco.setItem(0, 5, QtWidgets.QTableWidgetItem("Ax(1/K)"))
         self.tableaboveTco.setItem(0, 6, QtWidgets.QTableWidgetItem("Bld " + "\n" + "x10^-2"))
         self.tableaboveTco.setItem(0, 7, QtWidgets.QTableWidgetItem("\u03BE" + "ab" + " (0) (Å)"))
         self.tableaboveTco.setItem(0, 8, QtWidgets.QTableWidgetItem("\u03BE" + "c" + " (0) (Å)"))
-        self.tableaboveTco.setItem(0, 9, QtWidgets.QTableWidgetItem("\u03BB"))
+        self.tableaboveTco.setItem(0, 9, QtWidgets.QTableWidgetItem("\u03b3"))
         self.tableaboveTco.setItem(0, 10, QtWidgets.QTableWidgetItem("Date"))
-
-        # create table belowTco
-
-        #self.tablebelowTco.setItem(0, 0, QtWidgets.QTableWidgetItem("Sample"))
-        #self.tablebelowTco.setItem(0, 1, QtWidgets.QTableWidgetItem("T(K)"))
-        #self.tablebelowTco.setItem(0, 2, QtWidgets.QTableWidgetItem("Tirr"))
-        #self.tablebelowTco.setItem(0, 3, QtWidgets.QTableWidgetItem("Theoretical"))
-        #self.tablebelowTco.setItem(0, 4, QtWidgets.QTableWidgetItem("\u03C7" + " (0) (A)"))
-        #self.tablebelowTco.setItem(0, 5, QtWidgets.QTableWidgetItem("\u03C7"))
-        #self.tablebelowTco.setItem(0, 6, QtWidgets.QTableWidgetItem("Hc2 (O) (Oe)"))
 
         self.muestra = ""
         self.Tc = 0
